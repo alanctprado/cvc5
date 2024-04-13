@@ -264,6 +264,10 @@ void OptionsHandler::setResourceWeight(const std::string& flag,
   d_options->write_base().resourceWeightHolder.emplace_back(optarg);
 }
 
+void OptionsHandler::checkBvPbSolver(const std::string& flag, BvPbSolverMode m)
+{
+}
+
 void OptionsHandler::checkBvSatSolver(const std::string& flag,
                                       BvSatSolverMode m)
 {
