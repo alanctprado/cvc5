@@ -654,12 +654,19 @@ libcvc5_add_sources(
   theory/bv/bv_solver.h
   theory/bv/bv_solver_bitblast.cpp
   theory/bv/bv_solver_bitblast.h
+  theory/bv/bv_solver_pb.cpp
+  theory/bv/bv_solver_pb.h
   theory/bv/bv_solver_bitblast_internal.cpp
   theory/bv/bv_solver_bitblast_internal.h
   theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
   theory/bv/macro_rewrite_elaborator.cpp
   theory/bv/macro_rewrite_elaborator.h
+  theory/bv/pb/pb_blaster.h
+  theory/bv/pb/pb_blast_utils.h
+  theory/bv/pb/pb_blast_strategies_template.h
+  theory/bv/pb/pb_node_blaster.cpp
+  theory/bv/pb/pb_node_blaster.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/theory_bv.cpp
