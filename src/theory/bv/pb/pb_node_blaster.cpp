@@ -15,6 +15,8 @@
 
 #include "theory/bv/pb/pb_node_blaster.h"
 
+#include "util/rational.h"
+
 #include <algorithm>
 #include <sstream>
 #include <unordered_set>
@@ -25,9 +27,11 @@ namespace bv {
 namespace pb {
 
 PseudoBooleanBlaster::PseudoBooleanBlaster(Env& env, TheoryState* s)
-    : TPseudoBooleanBlaster<unsigned, std::string>(), EnvObj(env)
+    : TPseudoBooleanBlaster<unsigned, std::string>(env.getNodeManager()),
+      EnvObj(env)
 {
   d_varCounter = 1;
+  d_varCounter2 = 1;
 }
 
 void PseudoBooleanBlaster::blastAtom(TNode atom)
@@ -106,6 +110,7 @@ void PseudoBooleanBlaster::makeVariables(TNode node, Subproblem& sp,
   for (unsigned i = 0; i < utils::getSize(node) + spare; i++)
   {
     sp.first.push_back(newVariable());
+    newVariable2();
   }
 }
 
@@ -125,6 +130,11 @@ unsigned PseudoBooleanBlaster::newVariable()
   return d_varCounter++;
 }
 
+Node PseudoBooleanBlaster::newVariable2()
+{
+  return getNodeManager()->mkConstInt(Rational(d_varCounter2++));
+}
+
 void PseudoBooleanBlaster::blastTerm(TNode node, Subproblem& sp)
 {
   Assert(node.getType().isBitVector());
@@ -133,9 +143,17 @@ void PseudoBooleanBlaster::blastTerm(TNode node, Subproblem& sp)
     getTerm(node, sp);
     return;
   }
-  d_termStrategies[static_cast<uint32_t>(node.getKind())](node, sp, this);
-  Assert(sp.first.size() == utils::getSize(node));
-  storeTerm(node, sp);
+  if (node.getKind() != Kind::BITVECTOR_ADD)
+  {
+    d_termStrategies[static_cast<uint32_t>(node.getKind())](node, sp, this);
+    Assert(sp.first.size() == utils::getSize(node));
+    storeTerm(node, sp);
+  }
+  else
+  {
+    Trace("bv-pb") << "Caí aqui com " << node << "\n";
+    d_termStrategies[static_cast<uint32_t>(node.getKind())](node, sp, this);
+  }
 }
 
 std::pair<std::vector<unsigned>, std::vector<std::string>>
