@@ -39,6 +39,9 @@ namespace pb {
 template <class T, class U>
 class TPseudoBooleanBlaster
 {
+ private:
+  NodeManager* d_nm;
+
  protected:
   typedef std::vector<T> Variables;
   typedef std::vector<U> Constraints;
@@ -64,18 +67,24 @@ class TPseudoBooleanBlaster
   TermStrategy d_termStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
 
  public:
-  TPseudoBooleanBlaster();
+  TPseudoBooleanBlaster(NodeManager* nm);
   virtual ~TPseudoBooleanBlaster() {}
   virtual void blastAtom(TNode node) = 0;
   virtual void blastTerm(TNode node, Subproblem& sp) = 0;
   virtual void makeVariables(TNode node, Subproblem& sp, unsigned spare=0) = 0;
   virtual bool hasAtom(TNode atom) const = 0;
   virtual T newVariable() = 0;
+  virtual Node newVariable2() = 0;
   virtual void storeAtom(TNode atom, Subproblem atom_bb) = 0;
   virtual void simplifyConstraints(Constraints constraints, Subproblem& sp) = 0;
   bool hasTerm(TNode node) const;
   void getTerm(TNode node, Subproblem& sp) const;
+  NodeManager* getNodeManager() const;
   virtual void storeTerm(TNode term, const Subproblem& subproblem);
+  
+  const Node PB_EQ = d_nm->mkConstInt(Rational(0));
+  const Node ZERO = d_nm->mkConstInt(Rational(0));
+  const Node PB_GE = d_nm->mkConstInt(Rational(1));
 };
 
 /** Pseudo-boolean blaster implementation. */
@@ -116,7 +125,7 @@ void TPseudoBooleanBlaster<T,U>::initTermStrategies()
 }
 
 template <class T, class U>
-TPseudoBooleanBlaster<T,U>::TPseudoBooleanBlaster()
+TPseudoBooleanBlaster<T,U>::TPseudoBooleanBlaster(NodeManager* nm) : d_nm(nm)
 {
   initAtomStrategies();
   initTermStrategies();
@@ -139,6 +148,12 @@ template <class T, class U>
 void TPseudoBooleanBlaster<T,U>::storeTerm(TNode node, const Subproblem& sp)
 {
   d_termCache.insert(std::make_pair(node, sp));
+}
+
+template <class T, class U>
+NodeManager* TPseudoBooleanBlaster<T,U>::getNodeManager() const
+{
+  return d_nm;
 }
 
 }  // namespace pb
