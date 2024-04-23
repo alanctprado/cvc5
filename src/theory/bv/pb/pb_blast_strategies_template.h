@@ -13,6 +13,7 @@
  * Implementation of pseudo-boolean blasting functions for various operators.
  */
 
+#include <algorithm>
 #include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__PB__PB_BLAST_STRATEGIES_TEMPLATE_H
@@ -58,6 +59,8 @@ std::vector<U> DefaultEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
   TSubproblem<T, U> lhs, rhs; 
   pbb->blastTerm(node[0], lhs);
   pbb->blastTerm(node[1], rhs);
+  // OPaaaa
+  lhs = rhs;
   Assert(lhs.first.size() == rhs.first.size());
 
   std::ostringstream constraint;
@@ -109,8 +112,7 @@ std::vector<U> NegatedEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
   Assert(node.getKind() == Kind::EQUAL);
   Trace("bv-pb") << "theory::bv::pb::NegatedEqPb " << node  << "\n";
 
-  Node xor_node = NodeManager::currentNM()->mkNode(Kind::BITVECTOR_XOR,
-                                                   node[0], node[1]);
+  Node xor_node = pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR, node[0], node[1]);
   TSubproblem<T, U> xor_sp; 
   pbb->blastTerm(xor_node, xor_sp);
   Assert(xor_sp.first.size() == utils::getSize(xor_node));
@@ -144,8 +146,8 @@ void UndefinedTermPbStrategy(TNode node, TSubproblem<T,U>& sp,
 }
 
 template <class T, class U>
-void DefaultVarPb (TNode node, TSubproblem<T,U>& sp,
-                   TPseudoBooleanBlaster<T,U>* pbb) {
+void DefaultVarPb(TNode node, TSubproblem<T,U>& sp,
+                  TPseudoBooleanBlaster<T,U>* pbb) {
   Trace("bv-pb") << "theory::bv::pb::DefaultVarPb blasting " << node;
   Assert(sp.first.size() == 0);
   pbb->makeVariables(node, sp);
@@ -153,8 +155,8 @@ void DefaultVarPb (TNode node, TSubproblem<T,U>& sp,
 }
 
 template <class T, class U>
-void DefaultConstPb (TNode node, TSubproblem<T,U>& sp,
-                     TPseudoBooleanBlaster<T,U>* pbb) {
+void DefaultConstPb(TNode node, TSubproblem<T,U>& sp,
+                    TPseudoBooleanBlaster<T,U>* pbb) {
   Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << node;
   Assert(node.getKind() == Kind::CONST_BITVECTOR);
   /** Are the following assertions necessary? */
@@ -166,6 +168,7 @@ void DefaultConstPb (TNode node, TSubproblem<T,U>& sp,
     Integer bit = node.getConst<BitVector>().extract(size-i-1, size-i-1)
                                             .getValue();
     sp.first.push_back(pbb->newVariable());
+    pbb->newVariable2();
     std::ostringstream constraint;
     if(bit == Integer(0)){
       constraint << mkPbVar(sp.first[i]) << " = 0 ;\n";
@@ -180,8 +183,8 @@ void DefaultConstPb (TNode node, TSubproblem<T,U>& sp,
 }
 
 template <class T, class U>
-void DefaultXorPb (TNode node, TSubproblem<T, U>& sp,
-                   TPseudoBooleanBlaster<T, U>* pbb)
+void DefaultXorPb(TNode node, TSubproblem<T, U>& sp,
+                  TPseudoBooleanBlaster<T, U>* pbb)
 {
   Trace("bv-pb") << "theory::bv::pb::DefaultXorPb blasting " << node << "\n";
   Assert(node.getKind() == Kind::BITVECTOR_XOR && sp.first.size() == 0);
@@ -207,41 +210,59 @@ void DefaultXorPb (TNode node, TSubproblem<T, U>& sp,
 }
 
 template <class T, class U>
-void DefaultAddPb(TNode node, TSubproblem<T,U>& sp,
-                  TPseudoBooleanBlaster<T,U>* pbb)
+void DefaultAddPb(TNode node, TSubproblem<T, U>& sp, TPseudoBooleanBlaster<T,U>* pbb)
 {
   Trace("bv-pb") << "theory::bv::pb::DefaultAddPb blasting " << node << "\n";
-  Assert(node.getKind() == Kind::BITVECTOR_ADD && sp.first.size() == 0);
+  Assert(node.getKind() == Kind::BITVECTOR_ADD);
 
-  std::ostringstream adder_constraint;
+  NodeManager* nm = pbb->getNodeManager();
+
+  std::vector<Node> children, constr_vars, constr_coeffs;
+
+  std::vector<Node> mock_indexes;
+  for (unsigned j = 0; j < 4; j++) mock_indexes.push_back(nm->mkConstInt(Rational(j)));
+  Node mock_vars = nm->mkNode(Kind::SEXPR, mock_indexes);
+  std::vector<Node> mock_coeffs = bvToUnsigned2(4, nm);
+  Node mock_constraint = mkConstraintNode(mock_indexes, mock_coeffs, pbb->PB_EQ,
+                                          pbb->ZERO, nm);
+  Node mock_children = nm->mkNode(Kind::SEXPR, {mock_constraint, mock_constraint});
   for(unsigned i = 0; i < node.getNumChildren(); i++)
   {
-    TSubproblem<T,U> aux;
-    pbb->blastTerm(node[i], aux);
-    for (std::string s : aux.second)
-    {
-      sp.second.push_back(s);
-    }
-    adder_constraint << bvToUnsigned(aux.first);
+    /** blasted = (( vars ), (children)) */
+    // Node blasted = pbb->blastTerm(node[i]);
+    Node blasted = nm->mkNode(Kind::SEXPR, {mock_vars, mock_children});
+    for (Node c : blasted[1]) { children.push_back(c); }
+    for (Node v : blasted[0]) { constr_vars.push_back(v); }
+    std::vector<Node> c = bvToUnsigned2(blasted[0].getNumChildren(),
+                                        nm);
+    std::move(c.begin(), c.end(), std::back_inserter(constr_coeffs));
   }
 
+
+  /** extra_bits used to store possible overflow */
   int extra_bits = ceil_log2(node.getNumChildren());
-  std::vector<T> with_overflow;
-  for (unsigned i = 0; i < utils::getSize(node) + extra_bits; i++)
-  {
-    with_overflow.push_back(pbb->newVariable());
-  }
-  adder_constraint << bvToUnsigned(with_overflow, -1);
-  for (unsigned i = 0; i < utils::getSize(node); i++)
-  {
-    sp.first.push_back(with_overflow[extra_bits + i]);
-  }
-  adder_constraint << "= 0 ;\n";
-  sp.second.push_back(adder_constraint.str());
+  unsigned res_bits = utils::getSize(node) + extra_bits;
 
-  Assert(sp.first.size() == utils::getSize(node));
-  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb result "
-                 << adder_constraint.str();
+  std::vector<Node> res_v(res_bits);
+  std::vector<Node> flattened_vars(utils::getSize(node));
+  std::generate(res_v.begin(), res_v.end(), [pbb] {
+      return pbb->newVariable2(); });
+  std::copy(res_v.begin() + extra_bits, res_v.end(), flattened_vars.begin());
+  std::move(res_v.begin(), res_v.end(), std::back_inserter(constr_vars));
+
+  std::vector<Node> res_c = bvToUnsigned2(res_bits, nm, -1);
+  std::move(res_c.begin(), res_c.end(), std::back_inserter(constr_coeffs));
+
+  Node constraint = mkConstraintNode(constr_vars, constr_coeffs, pbb->PB_EQ,
+                                     pbb->ZERO, nm);
+
+  std::vector<Node> blasted_children {constraint};
+  blasted_children.push_back(children[0]); // Change to move children
+
+  Node blasted_term = mkTermNode(flattened_vars, blasted_children, nm);
+
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(node));
+  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb result " << blasted_term << "\n";
 }
 
 }  // namespace pb
