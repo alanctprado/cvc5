@@ -13,6 +13,8 @@
  * Various utility functions for PB-blasting.
  */
 
+#include <initializer_list>
+#include <iterator>
 #include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__PB__PB_BLAST_UTILS_H
@@ -21,6 +23,7 @@
 #include <ostream>
 #include <vector>
 #include "expr/node.h"
+#include "util/rational.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -37,6 +40,54 @@ template <class T> std::string mkPbVar(T var, long long coeff);
 template <class T> std::string bvToUnsigned(const std::vector<T>& bv,
                                             int sign = 1);
 template <class T> std::string bvToClause(const std::vector<T>& bv);
+
+/**
+ * Term Node format:
+ * SEXPR ( SEXPR (variables),
+ *         SEXPR (term Constraints),
+ *         children...
+ *       )
+ */
+template <class T> inline
+T mkTermNode(std::vector<T> variables, std::vector<T> constraints, NodeManager* nm)
+{
+  T variables_t = nm->mkNode(Kind::SEXPR, variables);
+  T constraints_t = nm->mkNode(Kind::SEXPR, constraints);
+  std::vector<T> result = {variables_t, constraints_t};
+  T result_t = nm->mkNode(Kind::SEXPR, result);
+  return result_t;
+} 
+
+/**
+ * Atom Node format:
+ * SEXPR ( Constraint,
+ *         children...
+ *       )
+ */
+template <class T> inline
+T mkAtomNode(T constraint, std::vector<T> children, NodeManager* nm)
+{
+  std::vector<T> result = {constraint};
+  std::move(children.begin(), children.end(), std::back_inserter(result));
+  T result_t = nm->mkNode(Kind::SEXPR, result);
+  return result_t;
+} 
+
+/**
+ * Constraint Node format:
+ * SEXPR ( SEXPR (type, SEXPR (vars, coeffs), val),
+ *         children...
+ *       )
+ */
+template <class T> inline
+T mkConstraintNode(std::vector<T> variables, std::vector<T> coefficients,
+                       T type, T value, NodeManager* nm)
+{
+  T variables_t = nm->mkNode(Kind::SEXPR, variables);
+  T coefficients_t = nm->mkNode(Kind::SEXPR, coefficients);
+  T result = nm->mkNode(Kind::SEXPR, {type, variables_t, coefficients_t, value});
+  return result;
+} 
 
 template <class T> inline
 std::string toString (const std::vector<T>& bv)
@@ -73,6 +124,17 @@ std::string bvToUnsigned(const std::vector<T>& bv, int sign)
   }
   return os.str();
 } 
+
+template <class T = Node> inline
+std::vector<T> bvToUnsigned2(unsigned size, NodeManager* nm, int sign = 1)
+{
+  std::ostringstream os;
+  int coeff = (1 << size) * sign;
+  std::vector<T> coefficients(size);
+  std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
+      return nm->mkConstInt(Rational(coeff /= 2)); });
+  return coefficients;
+}
 
 template <class T> inline
 std::string bvToClause(const std::vector<T>& bv)

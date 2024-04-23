@@ -58,12 +58,14 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<unsigned,
   void makeVariables(TNode node, Subproblem& sp, unsigned spare=0) override;
   /** Create a new variable not yet used in the solver. */
   unsigned newVariable() override;
+  Node newVariable2() override;
 
  private:
   /** Caches PB-blasted atoms. */
   std::unordered_map<Node, Subproblem> d_pbAtoms;
   /** Counts variables used so far. */
   unsigned d_varCounter;
+  unsigned d_varCounter2;
 };
 
 }  // namespace pb
