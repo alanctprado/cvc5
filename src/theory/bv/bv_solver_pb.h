@@ -53,14 +53,10 @@ class BVSolverPseudoBoolean : public BVSolver
                           const std::set<Node>& termSet) override { return 1; }
 
  private:
-  typedef std::unordered_set<unsigned> Variables;
-  typedef std::unordered_set<std::string> Constraints;
-  typedef std::pair<std::vector<unsigned>, std::vector<std::string>> PbResult;
-
   /** Initialize pseudo-boolean solver. */
   void initPbSolver();
   /** Write PB problem in OPB format */
-  void writeProblem(Variables variables, Constraints constraints);
+  void writeProblem(Node problem);
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
  /**
@@ -69,7 +65,7 @@ class BVSolverPseudoBoolean : public BVSolver
   */
   context::CDQueue<Node> d_facts;
   /** Stores the PB Constraint for a given fact. */
-  context::CDHashMap<Node, PbResult> d_factConstraintCache;
+  context::CDHashMap<Node, Node> d_factConstraintCache;
 };
 
 }  // namespace pb
