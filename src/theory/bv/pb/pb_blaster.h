@@ -36,23 +36,19 @@ namespace pb {
  * T = variables, U = constraints
  */
 
-template <class T, class U>
+template <class T>
 class TPseudoBooleanBlaster
 {
  private:
   NodeManager* d_nm;
 
  protected:
-  typedef std::vector<T> Variables;
-  typedef std::vector<U> Constraints;
-  typedef std::pair<Variables, Constraints> Subproblem;
-  typedef std::unordered_map<Node, Subproblem> TermDefMap;
-
-  typedef void (*TermStrategy)(TNode, Subproblem&,
-                               TPseudoBooleanBlaster<T,U>*);
-  typedef std::vector<U> (*AtomStrategy)(TNode, TPseudoBooleanBlaster<T,U>*);
-
+  typedef std::unordered_map<T, T> TermDefMap;
   TermDefMap d_termCache;
+
+  typedef T (*TermStrategy)(T, TPseudoBooleanBlaster<T>*);
+  typedef T (*AtomStrategy)(T, TPseudoBooleanBlaster<T>*);
+
 
   void initAtomStrategies();
   void initTermStrategies();
@@ -63,95 +59,95 @@ class TPseudoBooleanBlaster
    * by node kind>
    */
   AtomStrategy d_atomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
-  AtomStrategy d_negAtomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
+//  AtomStrategy d_negAtomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   TermStrategy d_termStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
 
  public:
   TPseudoBooleanBlaster(NodeManager* nm);
   virtual ~TPseudoBooleanBlaster() {}
-  virtual void blastAtom(TNode node) = 0;
-  virtual void blastTerm(TNode node, Subproblem& sp) = 0;
-  virtual void makeVariables(TNode node, Subproblem& sp, unsigned spare=0) = 0;
-  virtual bool hasAtom(TNode atom) const = 0;
-  virtual T newVariable() = 0;
-  virtual Node newVariable2() = 0;
-  virtual void storeAtom(TNode atom, Subproblem atom_bb) = 0;
-  virtual void simplifyConstraints(Constraints constraints, Subproblem& sp) = 0;
-  bool hasTerm(TNode node) const;
-  void getTerm(TNode node, Subproblem& sp) const;
+
+  virtual void blastAtom(T atom) = 0;
+  virtual bool hasAtom(T atom) const = 0;
+
+  virtual T blastTerm(T term) = 0;
+  T getTerm(T term) const;
+  bool hasTerm(T term) const;
+
   NodeManager* getNodeManager() const;
-  virtual void storeTerm(TNode term, const Subproblem& subproblem);
-  
-  const Node PB_EQ = d_nm->mkConstInt(Rational(0));
+
+  virtual T newVariable(unsigned numBits) = 0;
+//  virtual void storeAtom(TNode atom, Subproblem atom_bb) = 0;
+//  virtual void simplifyConstraints(Constraints constraints, Subproblem& sp) = 0;
+//  virtual void storeTerm(TNode term, const Subproblem& subproblem);
   const Node ZERO = d_nm->mkConstInt(Rational(0));
-  const Node PB_GE = d_nm->mkConstInt(Rational(1));
+  const Node ONE = d_nm->mkConstInt(Rational(1));
 };
 
 /** Pseudo-boolean blaster implementation. */
-template <class T, class U>
-void TPseudoBooleanBlaster<T,U>::initAtomStrategies()
+template <class T>
+void TPseudoBooleanBlaster<T>::initAtomStrategies()
 {
   for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); ++i)
   {
-    d_atomStrategies[i] = UndefinedAtomPbStrategy<T,U>;
-    d_negAtomStrategies[i] = UndefinedAtomPbStrategy<T,U>;
+    d_atomStrategies[i] = UndefinedAtomPbStrategy<T>;
+//    d_negAtomStrategies[i] = UndefinedAtomPbStrategy<T>;
   }
   /** Setting default PB strategies for atoms */
   d_atomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
-      DefaultEqPb<T,U>;
-  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
-      DefaultUltPb<T,U>;
-  /** Setting default PB strategies for negated atoms */
-  d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
-      NegatedEqPb<T,U>;
+      DefaultEqPb<T>;
+//  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
+//      DefaultUltPb<T>;
+//  /** Setting default PB strategies for negated atoms */
+//  d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
+//      NegatedEqPb<T>;
 }
 
-template <class T, class U>
-void TPseudoBooleanBlaster<T,U>::initTermStrategies()
+template <class T>
+void TPseudoBooleanBlaster<T>::initTermStrategies()
 {
   for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); i++)
   {
-    d_termStrategies[i] = UndefinedTermPbStrategy<T,U>;
+    d_termStrategies[i] = UndefinedTermPbStrategy<T>;
   }
   /** Setting default PB strategies for terms */
-   d_termStrategies[static_cast<uint32_t>(Kind::VARIABLE)] =
-       DefaultVarPb<T,U>;
-   d_termStrategies[static_cast<uint32_t>(Kind::CONST_BITVECTOR)] =
-       DefaultConstPb<T,U>;
-   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
-       DefaultXorPb<T,U>;
+  d_termStrategies[static_cast<uint32_t>(Kind::VARIABLE)] =
+      DefaultVarPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::CONST_BITVECTOR)] =
+      DefaultConstPb<T>;
+//   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
+//       DefaultXorPb<T>;
    d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] =
-       DefaultAddPb<T,U>;
+       DefaultAddPb<T>;
 }
 
-template <class T, class U>
-TPseudoBooleanBlaster<T,U>::TPseudoBooleanBlaster(NodeManager* nm) : d_nm(nm)
+template <class T>
+TPseudoBooleanBlaster<T>::TPseudoBooleanBlaster(NodeManager* nm) : d_nm(nm)
 {
   initAtomStrategies();
   initTermStrategies();
 }
 
-template <class T, class U>
-bool TPseudoBooleanBlaster<T,U>::hasTerm(TNode node) const
+template <class T>
+T TPseudoBooleanBlaster<T>::getTerm(T term) const
 {
-  return d_termCache.find(node) != d_termCache.end();
+  Assert(hasTerm(term));
+  return d_termCache.find(term)->second;
 }
 
-template <class T, class U>
-void TPseudoBooleanBlaster<T,U>::getTerm(TNode node, Subproblem& sp) const
+template <class T>
+bool TPseudoBooleanBlaster<T>::hasTerm(T term) const
 {
-  Assert(hasTerm(node));
-  sp = d_termCache.find(node)->second;
+  return d_termCache.find(term) != d_termCache.end();
 }
 
-template <class T, class U>
-void TPseudoBooleanBlaster<T,U>::storeTerm(TNode node, const Subproblem& sp)
-{
-  d_termCache.insert(std::make_pair(node, sp));
-}
-
-template <class T, class U>
-NodeManager* TPseudoBooleanBlaster<T,U>::getNodeManager() const
+//template <class T, class U>
+//void TPseudoBooleanBlaster<T,U>::storeTerm(TNode node, const Subproblem& sp)
+//{
+//  d_termCache.insert(std::make_pair(node, sp));
+//}
+//
+template <class T>
+NodeManager* TPseudoBooleanBlaster<T>::getNodeManager() const
 {
   return d_nm;
 }

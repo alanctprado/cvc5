@@ -33,39 +33,35 @@ namespace pb {
  *
  * Implements the bare minimum to PB-blast bit-vector atoms/terms.
  */
-class PseudoBooleanBlaster : public TPseudoBooleanBlaster<unsigned,
-                             std::string>, protected EnvObj
+class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
+                                    protected EnvObj
 {
  public:
   PseudoBooleanBlaster(Env& env, TheoryState* state);
   ~PseudoBooleanBlaster() = default;
 
-  /** PB-blast term 'node' and return variables and constraints in 'sp'. */
-  void blastTerm(TNode node, Subproblem& sp) override;
   /** PB-blast atom 'node'. */
-  void blastAtom(TNode node) override;
-  /** Store Subproblem representing a PB-blasted atom. */
-  void storeAtom(TNode atom, Subproblem atom_bb) override;
-  /** Simplify a vector of constraints. */
-  void simplifyConstraints(std::vector<std::string> constraints, Subproblem& sp) override;
-  /** Store Subproblem representing a PB-blasted term. */
-  void storeTerm(TNode node, const Subproblem& sp) override;
+  void blastAtom(Node atom) override;
+  /** PB-blast term 'node' and return variables and constraints in 'sp'. */
+  Node blastTerm(Node term) override;
   /** Check if atom was already PB-blasted. */
-  bool hasAtom(TNode atom) const override;
-  /** Get PB-blasted Subproblem stored for atom. */
-  Subproblem getStoredAtom(TNode node);
-  /** Create 'variables' for bit-vector 'node'. */
-  void makeVariables(TNode node, Subproblem& sp, unsigned spare=0) override;
+  bool hasAtom(Node atom) const override;
   /** Create a new variable not yet used in the solver. */
-  unsigned newVariable() override;
-  Node newVariable2() override;
+  Node newVariable(unsigned numBits=1) override;
+//  /** Store Subproblem representing a PB-blasted atom. */
+//  void storeAtom(Node atom) override;
+//  /** Simplify a vector of constraints. */
+//  void simplifyConstraints(std::vector<std::string> constraints, Subproblem& sp) override;
+//  /** Store Subproblem representing a PB-blasted term. */
+//  void storeTerm(TNode node, const Subproblem& sp) override;
+//  /** Get PB-blasted Subproblem stored for atom. */
+//  Subproblem getStoredAtom(TNode node);
 
  private:
   /** Caches PB-blasted atoms. */
-  std::unordered_map<Node, Subproblem> d_pbAtoms;
+  std::unordered_map<Node, Node> d_pbAtoms;
   /** Counts variables used so far. */
   unsigned d_varCounter;
-  unsigned d_varCounter2;
 };
 
 }  // namespace pb
