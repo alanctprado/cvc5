@@ -14,6 +14,7 @@
  */
 
 #include <algorithm>
+#include <unordered_set>
 #include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__PB__PB_BLAST_STRATEGIES_TEMPLATE_H
@@ -40,92 +41,94 @@ namespace pb {
  * @param pbb the pseudo-boolean bitblaster
  */
 
-template <class T, class U>
-std::vector<U> UndefinedAtomPbStrategy(TNode node,
-                                       TPseudoBooleanBlaster<T,U>* pbb)
+template <class T>
+T UndefinedAtomPbStrategy(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
   Trace("bv-pb") << "Undefined PB-blasting strategy for atom of kind: "
-                 << node.getKind() << "\n";
-  Unreachable(); 
+                 << atom.getKind() << "\n";
+  return pbb->ZERO;  // Remove this
+  // Unreachable(); // TO-DO: remove comment
 }
 
-template <class T, class U>
-std::vector<U> DefaultEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
+template <class T>
+T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
   // TO-DO: consider adding bit-level equalities?
-  Assert(node.getKind() == Kind::EQUAL);
-  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb " << node  << "\n";
+  Assert(atom.getKind() == Kind::EQUAL);
+  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb " << atom << "\n";
 
-  TSubproblem<T, U> lhs, rhs; 
-  pbb->blastTerm(node[0], lhs);
-  pbb->blastTerm(node[1], rhs);
-  // OPaaaa
-  lhs = rhs;
-  Assert(lhs.first.size() == rhs.first.size());
-
-  std::ostringstream constraint;
-  constraint << bvToUnsigned(lhs.first)
-             << bvToUnsigned(rhs.first, -1)
-             << "= 0 ;\n";
-  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb result " << constraint.str();
-
-  std::vector<U> ret;
-  ret.push_back(constraint.str());
-  for (std::string c : lhs.second) { ret.push_back(c); }
-  for (std::string c : rhs.second) { ret.push_back(c); }
-  return ret;
+  T lhs = pbb->blastTerm(atom[0]);
+  Trace("bv-pb") << "LHS: " << atom[0] << "\n";
+  Trace("bv-pb") << "RESULT: " << lhs << "\n";
+//  pbb->blastTerm(node[1], rhs);
+//  // OPaaaa
+//  lhs = rhs;
+//  Assert(lhs.first.size() == rhs.first.size());
+//
+//  std::ostringstream constraint;
+//  constraint << bvToUnsigned(lhs.first)
+//             << bvToUnsigned(rhs.first, -1)
+//             << "= 0 ;\n";
+//  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb result " << constraint.str();
+//
+//  std::vector<U> ret;
+//  ret.push_back(constraint.str());
+//  for (std::string c : lhs.second) { ret.push_back(c); }
+//  for (std::string c : rhs.second) { ret.push_back(c); }
+//  return ret;
+  return pbb->getNodeManager()->mkConstInt(Rational(0));  // Remove this
 }
 
-template <class T, class U>
-std::vector<U> DefaultUltPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb) {
-  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb " << node  << "\n";
-  Assert(node.getKind() == Kind::BITVECTOR_ULT);
-
-  TSubproblem<T, U> lhs, rhs; 
-  pbb->blastTerm(node[0], lhs);
-  pbb->blastTerm(node[1], rhs);
-  Assert(lhs.first.size() == rhs.first.size());
-
-  std::ostringstream constraint;
-  constraint << bvToUnsigned(rhs.first)
-             << bvToUnsigned(lhs.first, -1)
-             << ">= 1 ;\n";
-  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb result " << constraint.str();
-
-  std::vector<U> ret;
-  ret.push_back(constraint.str());
-  for (std::string c : lhs.second) { ret.push_back(c); }
-  for (std::string c : rhs.second) { ret.push_back(c); }
-  return ret;
-}
-
-/**
- * Negated Atom PB-Bitblasting strategies: 
- * 
- * @param node the atom to be bitblasted
- * @param pbb the pseudo-boolean bitblaster
- */
-
-template <class T, class U>
-std::vector<U> NegatedEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
-{
-  Assert(node.getKind() == Kind::EQUAL);
-  Trace("bv-pb") << "theory::bv::pb::NegatedEqPb " << node  << "\n";
-
-  Node xor_node = pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR, node[0], node[1]);
-  TSubproblem<T, U> xor_sp; 
-  pbb->blastTerm(xor_node, xor_sp);
-  Assert(xor_sp.first.size() == utils::getSize(xor_node));
-
-  std::ostringstream constraint;
-  constraint << bvToClause(xor_sp.first);
-  Trace("bv-pb") << "theory::bv::pb::NegatedEqPb result " << constraint.str();
-
-  std::vector<U> ret;
-  ret.push_back(constraint.str());
-  for (std::string c : xor_sp.second) { ret.push_back(c); }
-  return ret;
-}
+//template <class T, class U>
+//std::vector<U> DefaultUltPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb) {
+//  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb " << node  << "\n";
+//  Assert(node.getKind() == Kind::BITVECTOR_ULT);
+//
+//  TSubproblem<T, U> lhs, rhs; 
+//  pbb->blastTerm(node[0], lhs);
+//  pbb->blastTerm(node[1], rhs);
+//  Assert(lhs.first.size() == rhs.first.size());
+//
+//  std::ostringstream constraint;
+//  constraint << bvToUnsigned(rhs.first)
+//             << bvToUnsigned(lhs.first, -1)
+//             << ">= 1 ;\n";
+//  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb result " << constraint.str();
+//
+//  std::vector<U> ret;
+//  ret.push_back(constraint.str());
+//  for (std::string c : lhs.second) { ret.push_back(c); }
+//  for (std::string c : rhs.second) { ret.push_back(c); }
+//  return ret;
+//}
+//
+///**
+// * Negated Atom PB-Bitblasting strategies: 
+// * 
+// * @param node the atom to be bitblasted
+// * @param pbb the pseudo-boolean bitblaster
+// */
+//
+//template <class T, class U>
+//std::vector<U> NegatedEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
+//{
+//  Assert(node.getKind() == Kind::EQUAL);
+//  Trace("bv-pb") << "theory::bv::pb::NegatedEqPb " << node  << "\n";
+//
+//  Node xor_node = pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR, node[0], node[1]);
+//  TSubproblem<T, U> xor_sp; 
+//  pbb->blastTerm(xor_node, xor_sp);
+//  Assert(xor_sp.first.size() == utils::getSize(xor_node));
+//
+//  std::ostringstream constraint;
+//  constraint << bvToClause(xor_sp.first);
+//  Trace("bv-pb") << "theory::bv::pb::NegatedEqPb result " << constraint.str();
+//
+//  std::vector<U> ret;
+//  ret.push_back(constraint.str());
+//  for (std::string c : xor_sp.second) { ret.push_back(c); }
+//  return ret;
+//}
 
 /* 
  * Default Term PB-Blasting strategies
@@ -136,133 +139,119 @@ std::vector<U> NegatedEqPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb)
  * @param pbb the bitblaster in which the clauses are added
  */
 
-template <class T, class U>
-void UndefinedTermPbStrategy(TNode node, TSubproblem<T,U>& sp,
-                             TPseudoBooleanBlaster<T,U>* pbb)
+template <class T>
+T UndefinedTermPbStrategy(T node, TPseudoBooleanBlaster<T>* pbb)
 {
   Trace("bv-pb") << "Undefined PB-blasting strategy for term of kind: "
                  << node.getKind() << "\n";
-  Unreachable(); 
+  return pbb->ZERO;  // Remove this
+  // Unreachable(); // Remove comment!!
 }
 
-template <class T, class U>
-void DefaultVarPb(TNode node, TSubproblem<T,U>& sp,
-                  TPseudoBooleanBlaster<T,U>* pbb) {
-  Trace("bv-pb") << "theory::bv::pb::DefaultVarPb blasting " << node;
-  Assert(sp.first.size() == 0);
-  pbb->makeVariables(node, sp);
-  Trace("bv-pb") << " with bits " << toString(sp.first) << "\n"; 
-}
-
-template <class T, class U>
-void DefaultConstPb(TNode node, TSubproblem<T,U>& sp,
-                    TPseudoBooleanBlaster<T,U>* pbb) {
-  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << node;
-  Assert(node.getKind() == Kind::CONST_BITVECTOR);
-  /** Are the following assertions necessary? */
-  Assert(sp.first.size() == 0);
-  Assert(sp.second.size() == 0);
-
-  unsigned size = utils::getSize(node);
-  for (unsigned i = 0; i < size; ++i) {
-    Integer bit = node.getConst<BitVector>().extract(size-i-1, size-i-1)
-                                            .getValue();
-    sp.first.push_back(pbb->newVariable());
-    pbb->newVariable2();
-    std::ostringstream constraint;
-    if(bit == Integer(0)){
-      constraint << mkPbVar(sp.first[i]) << " = 0 ;\n";
-    } else {
-      Assert(bit == Integer(1));
-      constraint << mkPbVar(sp.first[i]) << " = 1 ;\n";
-    }
-    sp.second.push_back(constraint.str());
-  }
-
-  Trace("bv-pb") << "with bits " << toString(sp.first) << "\n"; 
-}
-
-template <class T, class U>
-void DefaultXorPb(TNode node, TSubproblem<T, U>& sp,
-                  TPseudoBooleanBlaster<T, U>* pbb)
+template <class T>
+T DefaultVarPb(T term, TPseudoBooleanBlaster<T>* pbb)
 {
-  Trace("bv-pb") << "theory::bv::pb::DefaultXorPb blasting " << node << "\n";
-  Assert(node.getKind() == Kind::BITVECTOR_XOR && sp.first.size() == 0);
-  if (node.getNumChildren() != 2) { Unreachable(); }
-
-  TSubproblem<T, U> lhs, rhs; 
-  pbb->blastTerm(node[0], lhs);
-  pbb->blastTerm(node[1], rhs);
-  pbb->makeVariables(node, sp);
-  Assert(lhs.first.size() == rhs.first.size() &&
-         rhs.first.size() == sp.first.size());
-
-  for (unsigned i = 0; i < utils::getSize(node); i++)
-  {
-    for (std::string s : mkPbXor(lhs.first[i], rhs.first[i], sp.first[i]))
-    {
-      sp.second.push_back(s);
-    }
-  }
-
-  for (std::string c : lhs.second) { sp.second.push_back(c); }
-  for (std::string c : rhs.second) { sp.second.push_back(c); }
+  Trace("bv-pb") << "theory::bv::pb::DefaultVarPb blasting " << term;
+  Node variables = pbb->newVariable(utils::getSize(term));
+  Trace("bv-pb") << " with bits " << variables << "\n";
+  return mkTermNode(variables, std::vector<T>(), pbb->getNodeManager());
 }
 
-template <class T, class U>
-void DefaultAddPb(TNode node, TSubproblem<T, U>& sp, TPseudoBooleanBlaster<T,U>* pbb)
+template <class T>
+T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
 {
-  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb blasting " << node << "\n";
-  Assert(node.getKind() == Kind::BITVECTOR_ADD);
+  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << term;
+  Assert(term.getKind() == Kind::CONST_BITVECTOR);
 
   NodeManager* nm = pbb->getNodeManager();
+  unsigned size = utils::getSize(term);
+  Node variables = pbb->newVariable(size);
 
-  std::vector<Node> children, constr_vars, constr_coeffs;
-
-  std::vector<Node> mock_indexes;
-  for (unsigned j = 0; j < 4; j++) mock_indexes.push_back(nm->mkConstInt(Rational(j)));
-  Node mock_vars = nm->mkNode(Kind::SEXPR, mock_indexes);
-  std::vector<Node> mock_coeffs = bvToUnsigned2(4, nm);
-  Node mock_constraint = mkConstraintNode(mock_indexes, mock_coeffs, pbb->PB_EQ,
-                                          pbb->ZERO, nm);
-  Node mock_children = nm->mkNode(Kind::SEXPR, {mock_constraint, mock_constraint});
-  for(unsigned i = 0; i < node.getNumChildren(); i++)
+  std::vector<T> constraints;
+  for (unsigned i = 0; i < size; i++)
   {
-    /** blasted = (( vars ), (children)) */
-    // Node blasted = pbb->blastTerm(node[i]);
-    Node blasted = nm->mkNode(Kind::SEXPR, {mock_vars, mock_children});
-    for (Node c : blasted[1]) { children.push_back(c); }
-    for (Node v : blasted[0]) { constr_vars.push_back(v); }
-    std::vector<Node> c = bvToUnsigned2(blasted[0].getNumChildren(),
-                                        nm);
-    std::move(c.begin(), c.end(), std::back_inserter(constr_coeffs));
+    Integer bit_value = term.getConst<BitVector>().extract(size-i-1, size-i-1)
+                                                  .getValue();
+    T rhs = bit_value == Integer(0) ? pbb->ZERO : pbb->ONE;
+    constraints.push_back(mkConstraintNode(Kind::EQUAL, {variables[i]},
+                                           {pbb->ONE}, rhs, nm));
   }
 
+  Trace("bv-pb") << "with bits " << variables << "\n"; 
+  return mkTermNode(variables, constraints, nm);
+}
+
+//template <class T, class U>
+//void DefaultXorPb(TNode node, TSubproblem<T, U>& sp,
+//                  TPseudoBooleanBlaster<T, U>* pbb)
+//{
+//  Trace("bv-pb") << "theory::bv::pb::DefaultXorPb blasting " << node << "\n";
+//  Assert(node.getKind() == Kind::BITVECTOR_XOR && sp.first.size() == 0);
+//  if (node.getNumChildren() != 2) { Unreachable(); }
+//
+//  TSubproblem<T, U> lhs, rhs; 
+//  pbb->blastTerm(node[0], lhs);
+//  pbb->blastTerm(node[1], rhs);
+//  pbb->makeVariables(node, sp);
+//  Assert(lhs.first.size() == rhs.first.size() &&
+//         rhs.first.size() == sp.first.size());
+//
+//  for (unsigned i = 0; i < utils::getSize(node); i++)
+//  {
+//    for (std::string s : mkPbXor(lhs.first[i], rhs.first[i], sp.first[i]))
+//    {
+//      sp.second.push_back(s);
+//    }
+//  }
+//
+//  for (std::string c : lhs.second) { sp.second.push_back(c); }
+//  for (std::string c : rhs.second) { sp.second.push_back(c); }
+//}
+
+template <class T>
+T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb blasting " << term << "\n";
+  Assert(term.getKind() == Kind::BITVECTOR_ADD);
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+
+  std::vector<Node> variables, coefficients;
+  std::unordered_set<Node> constraints;
+
+  std::vector<Node> aux = bvToUnsigned(num_bits, nm);
+  for(unsigned i = 0; i < term.getNumChildren(); i++)
+  {
+    Node blasted = pbb->blastTerm(term[i]);
+    Assert(blasted[0].getNumChildren() == num_bits);
+    for (Node v: blasted[0]) { variables.push_back(v); }
+    std::copy(aux.begin(), aux.end(), std::back_inserter(coefficients));
+    for (Node c: blasted[1]) { constraints.insert(c); }
+  }
+
+  Trace("bv-pb") << variables << "\n";
+  Trace("bv-pb") << coefficients << "\n";
 
   /** extra_bits used to store possible overflow */
-  int extra_bits = ceil_log2(node.getNumChildren());
-  unsigned res_bits = utils::getSize(node) + extra_bits;
+  int extra_bits = ceil_log2(term.getNumChildren());
+  T extra_vars = pbb->newVariable(extra_bits);
+  for (T v : extra_vars) { variables.push_back(v); }
 
-  std::vector<Node> res_v(res_bits);
-  std::vector<Node> flattened_vars(utils::getSize(node));
-  std::generate(res_v.begin(), res_v.end(), [pbb] {
-      return pbb->newVariable2(); });
-  std::copy(res_v.begin() + extra_bits, res_v.end(), flattened_vars.begin());
-  std::move(res_v.begin(), res_v.end(), std::back_inserter(constr_vars));
+  T result_vars = pbb->newVariable(num_bits);
+  for (T v : result_vars) { variables.push_back(v); }
 
-  std::vector<Node> res_c = bvToUnsigned2(res_bits, nm, -1);
-  std::move(res_c.begin(), res_c.end(), std::back_inserter(constr_coeffs));
+  aux = bvToUnsigned(num_bits + extra_bits, nm, -1);
+  std::move(aux.begin(), aux.end(), std::back_inserter(coefficients));
 
-  Node constraint = mkConstraintNode(constr_vars, constr_coeffs, pbb->PB_EQ,
-                                     pbb->ZERO, nm);
+  constraints.insert(mkConstraintNode(Kind::EQUAL, variables, coefficients,
+                                     pbb->ZERO, nm));
 
-  std::vector<Node> blasted_children {constraint};
-  blasted_children.push_back(children[0]); // Change to move children
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
 
-  Node blasted_term = mkTermNode(flattened_vars, blasted_children, nm);
-
-  Assert(blasted_term[0].getNumChildren() == utils::getSize(node));
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
   Trace("bv-pb") << "theory::bv::pb::DefaultAddPb result " << blasted_term << "\n";
+  return blasted_term;
 }
 
 }  // namespace pb

@@ -41,39 +41,37 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
 {
   Trace("bv-pb") << "Post check with effort level " << level << "\n";
   if (level != Theory::Effort::EFFORT_FULL) { return; }
-  Variables problem_variables;
-  Constraints problem_constraints;
   /** Process PB-blast queue and generate sets of variables and constraints. */
+  Node final_result;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
     d_facts.pop();
-    PbResult result;  // Variables and constraints of the current fact.
+    Node result;  // Variables and constraints of the current fact.
     if (d_factConstraintCache.find(fact) == d_factConstraintCache.end())
     {
       if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) { Unhandled(); }
       else
       {
         d_pbBlaster->blastAtom(fact);
-        result = d_pbBlaster->getStoredAtom(fact);
-        d_factConstraintCache[fact] = result;
+        // result = d_pbBlaster->getStoredAtom(fact);
+        // d_factConstraintCache[fact] = result;
       }
     }
     else { result = d_factConstraintCache[fact]; }
-    for (unsigned v : result.first) { problem_variables.insert(v); }
-    for (std::string c : result.second) { problem_constraints.insert(c); }
+//    for (unsigned v : result.first) { problem_variables.insert(v); }
+//    for (std::string c : result.second) { problem_constraints.insert(c); }
   }
-  writeProblem(problem_variables, problem_constraints);
+  writeProblem(final_result);
 }
 
-void BVSolverPseudoBoolean::writeProblem(Variables variables,
-                                         Constraints constraints)
+void BVSolverPseudoBoolean::writeProblem(Node problem)
 {
-  std::ostringstream opb_file;
-  opb_file << "* #variable= " << variables.size();
-  opb_file << " #constraint= " << constraints.size() << "\n";
-  for (std::string constraint : constraints) { opb_file << constraint; }
-  Trace("bv-pb-opb") << opb_file.str();
+//  std::ostringstream opb_file;
+//  opb_file << "* #variable= " << variables.size();
+//  opb_file << " #constraint= " << constraints.size() << "\n";
+//  for (std::string constraint : constraints) { opb_file << constraint; }
+//  Trace("bv-pb-opb") << opb_file.str();
 }
 
 bool BVSolverPseudoBoolean::preNotifyFact(TNode atom, bool pol, TNode fact,
