@@ -60,9 +60,9 @@ T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   T lhs = pbb->blastTerm(atom[0]);
   Trace("bv-pb") << "LHS: " << atom[0] << "\n";
   Trace("bv-pb") << "RESULT: " << lhs << "\n";
-//  pbb->blastTerm(node[1], rhs);
-//  // OPaaaa
-//  lhs = rhs;
+  T rhs = pbb->blastTerm(atom[1]);
+  Trace("bv-pb") << "RHS: " << atom[0] << "\n";
+  Trace("bv-pb") << "RESULT: " << rhs << "\n";
 //  Assert(lhs.first.size() == rhs.first.size());
 //
 //  std::ostringstream constraint;
@@ -160,12 +160,13 @@ T DefaultVarPb(T term, TPseudoBooleanBlaster<T>* pbb)
 template <class T>
 T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
 {
-  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << term;
+  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << term << "\n";
   Assert(term.getKind() == Kind::CONST_BITVECTOR);
 
   NodeManager* nm = pbb->getNodeManager();
   unsigned size = utils::getSize(term);
   Node variables = pbb->newVariable(size);
+
 
   std::vector<T> constraints;
   for (unsigned i = 0; i < size; i++)
