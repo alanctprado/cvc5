@@ -56,14 +56,14 @@ template <class T> inline
 T mkConstraintNode(Kind k, std::vector<T> variables,
                    std::vector<T> coefficients, T value, NodeManager* nm)
 {
-  /** Use bool for type */
   Assert(variables.size() == coefficients.size());
+  unsigned size = variables.size();
   std::vector<T> terms;
-  for (unsigned i = 0; i < variables.size(); i++)
+  for (unsigned i = 0; i < size; i++)
   {
     terms.push_back(nm->mkNode(Kind::MULT, coefficients[i], variables[i]));
   }
-  T linear_form = nm->mkNode(Kind::ADD, terms);
+  T linear_form = size == 1 ? terms[0] : nm->mkNode(Kind::ADD, terms);
   T result = nm->mkNode(k, linear_form, value);
   return result;
 } 
