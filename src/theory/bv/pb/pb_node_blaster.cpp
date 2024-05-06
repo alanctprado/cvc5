@@ -135,31 +135,11 @@ Node PseudoBooleanBlaster::blastTerm(Node term)
   }
   Kind kind = term.getKind();
   Node result = d_termStrategies[static_cast<uint32_t>(kind)](term, this);
-//    Assert(sp.first.size() == utils::getSize(node));
-//    storeTerm(node, sp);
+  Assert(result[0].getNumChildren() == utils::getSize(term));
+  storeTerm(term, result);
   return result;
 }
 
-//Node PseudoBooleanBlaster::blastTerm2(Node term)
-//{
-//  Assert(term.getType().isBitVector());
-//  if (hasTerm(term))
-//  {
-//    return getTerm2(term);
-//  }
-//  if (term.getKind() != Kind::BITVECTOR_ADD)
-//  {
-//    d_termStrategies[static_cast<uint32_t>(term.getKind())](term, this);
-//    Assert(sp.first.size() == utils::getSize(node));
-//    storeTerm(node, sp);
-//  }
-//  else
-//  {
-//    Trace("bv-pb") << "Caí aqui com " << node << "\n";
-//    d_termStrategies[static_cast<uint32_t>(node.getKind())](node, sp, this);
-//  }
-//}
-//
 //std::pair<std::vector<unsigned>, std::vector<std::string>>
 //PseudoBooleanBlaster::getStoredAtom(TNode atom)
 //{
