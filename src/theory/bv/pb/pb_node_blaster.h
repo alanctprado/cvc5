@@ -52,8 +52,6 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
 //  void storeAtom(Node atom) override;
 //  /** Simplify a vector of constraints. */
 //  void simplifyConstraints(std::vector<std::string> constraints, Subproblem& sp) override;
-//  /** Store Subproblem representing a PB-blasted term. */
-//  void storeTerm(TNode node, const Subproblem& sp) override;
 //  /** Get PB-blasted Subproblem stored for atom. */
 //  Subproblem getStoredAtom(TNode node);
 
