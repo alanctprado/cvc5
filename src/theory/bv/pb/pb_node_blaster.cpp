@@ -41,6 +41,7 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
    */
   Trace("bv-pb-blast") << "Original atom: " << atom << "\n";
   if (hasAtom(atom)) return;
+  Node result;
 //  if (atom.getKind() == Kind::NOT)
 //  {
 //    Node normalized = rewrite(atom[0]);
@@ -54,14 +55,13 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
 //  else
   {
     Node normalized = rewrite(atom);
-    Trace("bv-pb") << "Normalized atom: " << normalized << "; Kind: "
+    Trace("bv-pb") << "\nNormalized atom: " << normalized << "; Kind: "
                    << normalized.getKind() << "\n";
-    Node result = d_atomStrategies[
+    result = d_atomStrategies[
       static_cast<uint32_t>(normalized.getKind())
     ](normalized, this);
   }
-//
-//  Trace("bv-pb-blast") << "Blasted atom:\n";
+  Trace("bv-pb-blast") << "Blasted atom:" << result << "\n";
 //  if (TraceIsOn("bv-pb-blast"))
 //  {
 //    for (std::string c : constraints) { Trace("bv-pb-blast") << c; }
