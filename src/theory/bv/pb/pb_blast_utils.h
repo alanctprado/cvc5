@@ -13,16 +13,11 @@
  * Various utility functions for PB-blasting.
  */
 
-#include <initializer_list>
-#include <iterator>
-#include <unordered_set>
 #include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__PB__PB_BLAST_UTILS_H
 #define CVC5__THEORY__BV__PB__PB_BLAST_UTILS_H
 
-#include <ostream>
-#include <vector>
 #include "expr/node.h"
 #include "util/rational.h"
 
@@ -33,26 +28,28 @@ namespace pb {
 
 template <class T> class TPseudoBooleanBlaster;
 
+/** Constraint creation functions */
 template <class T> inline
 T mkConstraintNode(Kind k, std::vector<T> variables,
                    std::vector<T> coefficients, T value, NodeManager* nm);
 template <class T> inline
 T mkConstraintNode(Kind k, std::vector<T> variables,
                    std::vector<int> coefficients, int value, NodeManager* nm);
-
+/** Term creation functions */
 template <class T> inline
 T mkTermNode(T variables, std::vector<T> constraints, NodeManager* nm);
 template <class T> inline
 T mkTermNode(T variables, std::unordered_set<T> constraints, NodeManager* nm);
-
+/** Atom creation functions */
 template <class T> inline
 T mkAtomNode(std::vector<T> constraints, NodeManager* nm);
 template <class T> inline
 T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm);
-
-template <class T = Node> inline
+/** PB logic gates */
+template <class T> std::vector<std::string> mkPbXor(T a, T b, T res);
+/** Other auxiliary functions */
+template <class T = Node> inline  // TODO: I don't really want to set T as Node
 std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign = 1);
-
 template <class T>
 int ceil_log2(T a);
 
@@ -136,45 +133,25 @@ T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm)
   for (auto it = constraints.begin(); it != constraints.end();)
   {
     v.push_back(std::move(constraints.extract(it++).value()));
-  } // I'm pretty sure this works...
+  } // TODO: I'm pretty sure this works...
   return mkAtomNode(v, nm);
 } 
 
-//template <class T> inline
-//std::string toString (const std::vector<T>& bv)
-//{
-//  std::ostringstream os;
-//  os << "[ ";
-//  for (unsigned i = 0; i < bv.size(); i++) { os << bv[i] << " "; }
-//  os << "]";
-//  return os.str();
-//} 
-//
-//template <class T> inline
-//std::string mkPbVar(T var, long long coeff)
-//{
-//  std::string sign = coeff >= 0 ? "+" : "-";
-//  return sign + std::to_string(llabs(coeff)) + " x" + std::to_string(var);
-//}
-//
-//template <class T> inline
-//std::string mkPbVar(T var)
-//{
-//  return "+1 x" + std::to_string(var);
-//}
-//
-//template <class T> inline
-//std::string bvToUnsigned(const std::vector<T>& bv, int sign)
-//{
-//  std::ostringstream os;
-//  long long coeff = (1 << (bv.size() - 1)) * sign;
-//  for (unsigned i = 0; i < bv.size(); i++)
-//  {
-//    os << mkPbVar(bv[i], coeff) << " ";
-//    coeff /= 2;
-//  }
-//  return os.str();
-//} 
+/** Creates the constraints that correspond to res = a \xor b */
+template <class T> inline
+std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
+{
+  std::vector<T> constraints;
+  constraints.push_back(mkConstraintNode(Kind::GEQ,
+      std::vector<T>{res, a, b}, std::vector<int>{-1, 1, 1}, 0, nm));
+  constraints.push_back(mkConstraintNode(Kind::GEQ,
+      std::vector<T>{res, a, b}, std::vector<int>{-1, -1, -1}, -2, nm));
+  constraints.push_back(mkConstraintNode(Kind::GEQ,
+      std::vector<T>{res, a, b}, std::vector<int>{1, 1, -1}, 0, nm));
+  constraints.push_back(mkConstraintNode(Kind::GEQ,
+      std::vector<T>{res, a, b}, std::vector<int>{1, -1, 1}, 0, nm));
+  return constraints;
+}
 
 template <class T> inline
 std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign)
@@ -185,32 +162,6 @@ std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign)
   std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
       return nm->mkConstInt(Rational(coeff /= 2)); });
   return coefficients;
-}
-
-//template <class T> inline
-//std::string bvToClause(const std::vector<T>& bv)
-//{
-//  std::ostringstream os;
-//  for (unsigned i = 0; i < bv.size(); i++) { os << mkPbVar(bv[i]) << " "; }
-//  os <<  ">= 1 ;\n";
-//  return os.str();
-//} 
-
-template <class T> std::vector<std::string> mkPbXor(T a, T b, T res);
-
-template <class T> inline
-std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
-{
-  std::vector<T> constraints;
-  constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{-1, 1, 1}, 0, nm));
-  constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{-1, -1, -1}, -2, nm));
-  constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{1, 1, -1}, 0, nm));
-  constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{1, -1, 1}, 0, nm));
-  return constraints;
 }
 
 template <class T> inline
