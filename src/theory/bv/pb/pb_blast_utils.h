@@ -33,16 +33,21 @@ namespace pb {
 
 template <class T> class TPseudoBooleanBlaster;
 
-template <class T> T
-mkConstraintNode(Kind k, std::vector<T> variables, std::vector<T> coefficients,
-                 T value, NodeManager* nm);
+template <class T> inline
+T mkConstraintNode(Kind k, std::vector<T> variables,
+                   std::vector<T> coefficients, T value, NodeManager* nm);
 
-template <class T>
+template <class T> inline
 T mkTermNode(T variables, std::vector<T> constraints, NodeManager* nm);
-template <class T>
+template <class T> inline
 T mkTermNode(T variables, std::unordered_set<T> constraints, NodeManager* nm);
 
-template <class T = Node>
+template <class T> inline
+T mkAtomNode(std::vector<T> constraints, NodeManager* nm);
+template <class T> inline
+T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm);
+
+template <class T = Node> inline
 std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign = 1);
 
 template <class T>
@@ -95,21 +100,28 @@ T mkTermNode(T variables, std::unordered_set<T> constraints,
   return mkTermNode(variables, v, nm);
 } 
 
-///**
-// * Atom Node format:
-// * SEXPR ( Constraint,
-// *         children...
-// *       )
-// */
-//template <class T> inline
-//T mkAtomNode(T constraint, std::vector<T> children, NodeManager* nm)
-//{
-//  std::vector<T> result = {constraint};
-//  std::move(children.begin(), children.end(), std::back_inserter(result));
-//  T result_t = nm->mkNode(Kind::SEXPR, result);
-//  return result_t;
-//} 
+/**
+ * Atom Node format:
+ * SEXPR ( Constraints )
+ */
+template <class T> inline
+T mkAtomNode(std::vector<T> constraints, NodeManager* nm)
+{
+  T result = nm->mkNode(Kind::SEXPR, constraints);
+  return result;
+} 
 
+template <class T> inline
+T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm)
+{
+  std::vector<T> v;
+  v.reserve(constraints.size());
+  for (auto it = constraints.begin(); it != constraints.end();)
+  {
+      v.push_back(std::move(constraints.extract(it++).value()));
+  } // I'm pretty sure this works...
+  return mkAtomNode(v, nm);
+} 
 
 //template <class T> inline
 //std::string toString (const std::vector<T>& bv)
