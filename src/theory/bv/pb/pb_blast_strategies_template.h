@@ -132,7 +132,7 @@ T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   std::vector<T> variables;
   for (T v : blasted_xor[0]) { variables.push_back(v); }
   T atom_constraint = mkConstraintNode(Kind::GEQ, variables,
-                                       std::vector<int>{1, 1, 1, 1}, 0, nm);
+                                       std::vector<int>{1, 1, 1, 1}, 1, nm);
   Trace("bv-pb") << "theory::bv::pb::NegatedEqPb resulted in constraint "
                  << atom_constraint << "\n";
 
@@ -231,7 +231,7 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
 template <class T>
 T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
 {
-  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb blasting " << term << "\n";
+  Trace("bv-pb") << "theory::bv::pb::DefaultAddPb blasting " << term;
   Assert(term.getKind() == Kind::BITVECTOR_ADD);
 
   NodeManager* nm = pbb->getNodeManager();
