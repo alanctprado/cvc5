@@ -72,13 +72,13 @@ class TPseudoBooleanBlaster
   virtual T blastTerm(T term) = 0;
   T getTerm(T term) const;
   bool hasTerm(T term) const;
+  void storeTerm(T term, const T blastedTerm);
 
   NodeManager* getNodeManager() const;
 
   virtual T newVariable(unsigned numBits) = 0;
 //  virtual void storeAtom(TNode atom, Subproblem atom_bb) = 0;
 //  virtual void simplifyConstraints(Constraints constraints, Subproblem& sp) = 0;
-//  virtual void storeTerm(TNode term, const Subproblem& subproblem);
   const Node ZERO = d_nm->mkConstInt(Rational(0));
   const Node ONE = d_nm->mkConstInt(Rational(1));
 };
@@ -95,8 +95,8 @@ void TPseudoBooleanBlaster<T>::initAtomStrategies()
   /** Setting default PB strategies for atoms */
   d_atomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
       DefaultEqPb<T>;
-//  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
-//      DefaultUltPb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
+      DefaultUltPb<T>;
 //  /** Setting default PB strategies for negated atoms */
 //  d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
 //      NegatedEqPb<T>;
@@ -140,12 +140,12 @@ bool TPseudoBooleanBlaster<T>::hasTerm(T term) const
   return d_termCache.find(term) != d_termCache.end();
 }
 
-//template <class T, class U>
-//void TPseudoBooleanBlaster<T,U>::storeTerm(TNode node, const Subproblem& sp)
-//{
-//  d_termCache.insert(std::make_pair(node, sp));
-//}
-//
+template <class T>
+void TPseudoBooleanBlaster<T>::storeTerm(T node, const T blastedNode)
+{
+  d_termCache.emplace(node, blastedNode);
+}
+
 template <class T>
 NodeManager* TPseudoBooleanBlaster<T>::getNodeManager() const
 {
