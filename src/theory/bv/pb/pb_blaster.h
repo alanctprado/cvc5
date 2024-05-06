@@ -19,8 +19,6 @@
 #define CVC5__THEORY__BV__PB__PB_BLASTER_H
 
 #include <unordered_map>
-#include "expr/node.h"
-#include "theory/theory.h"
 
 #include "theory/bv/pb/pb_blast_strategies_template.h"
 
@@ -32,8 +30,6 @@ namespace pb {
 /**
  * The PB-blaster that manages the mapping between Nodes
  * and their bitwise definition
- *
- * T = variables, U = constraints
  */
 
 template <class T>
@@ -44,43 +40,42 @@ class TPseudoBooleanBlaster
 
  protected:
   typedef std::unordered_map<T, T> TermDefMap;
+  typedef std::unordered_map<T, T> AtomDefMap;
   TermDefMap d_termCache;
+  AtomDefMap d_atomCache;
 
   typedef T (*TermStrategy)(T, TPseudoBooleanBlaster<T>*);
   typedef T (*AtomStrategy)(T, TPseudoBooleanBlaster<T>*);
 
-
-  void initAtomStrategies();
-  void initTermStrategies();
-
   /**
    * Function tables for the various pseudo-boolean blasting strategies,
-   * indexed
-   * by node kind>
+   * indexed by node kind
    */
   AtomStrategy d_atomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   AtomStrategy d_negAtomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   TermStrategy d_termStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
+
+  void initAtomStrategies();
+  void initTermStrategies();
 
  public:
   TPseudoBooleanBlaster(NodeManager* nm);
   virtual ~TPseudoBooleanBlaster() {}
 
   virtual void blastAtom(T atom) = 0;
-  virtual bool hasAtom(T atom) const = 0;
+  T getAtom(T atom) const;
+  bool hasAtom(T atom) const;
+  void storeAtom(T atom, const T blastedAtom);
 
   virtual T blastTerm(T term) = 0;
   T getTerm(T term) const;
   bool hasTerm(T term) const;
   void storeTerm(T term, const T blastedTerm);
 
-  NodeManager* getNodeManager() const;
-
   virtual T newVariable(unsigned numBits) = 0;
-//  virtual void storeAtom(TNode atom, Subproblem atom_bb) = 0;
-//  virtual void simplifyConstraints(Constraints constraints, Subproblem& sp) = 0;
-  const Node ZERO = d_nm->mkConstInt(Rational(0));
-  const Node ONE = d_nm->mkConstInt(Rational(1));
+  NodeManager* getNodeManager() const;
+  const Node d_ZERO = d_nm->mkConstInt(Rational(0));
+  const Node d_ONE = d_nm->mkConstInt(Rational(1));
 };
 
 /** Pseudo-boolean blaster implementation. */
@@ -128,6 +123,25 @@ TPseudoBooleanBlaster<T>::TPseudoBooleanBlaster(NodeManager* nm) : d_nm(nm)
 }
 
 template <class T>
+T TPseudoBooleanBlaster<T>::getAtom(T atom) const
+{
+  Assert(hasAtom(atom));
+  return d_atomCache.find(atom)->second;
+}
+
+template <class T>
+bool TPseudoBooleanBlaster<T>::hasAtom(T atom) const
+{
+  return d_atomCache.find(atom) != d_atomCache.end();
+}
+
+template <class T>
+void TPseudoBooleanBlaster<T>::storeAtom(T atom, const T blastedAtom)
+{
+  d_termCache.emplace(atom, blastedAtom);
+}
+
+template <class T>
 T TPseudoBooleanBlaster<T>::getTerm(T term) const
 {
   Assert(hasTerm(term));
@@ -141,9 +155,9 @@ bool TPseudoBooleanBlaster<T>::hasTerm(T term) const
 }
 
 template <class T>
-void TPseudoBooleanBlaster<T>::storeTerm(T node, const T blastedNode)
+void TPseudoBooleanBlaster<T>::storeTerm(T term, const T blastedTerm)
 {
-  d_termCache.emplace(node, blastedNode);
+  d_termCache.emplace(term, blastedTerm);
 }
 
 template <class T>
