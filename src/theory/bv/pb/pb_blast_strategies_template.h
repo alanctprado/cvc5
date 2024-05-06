@@ -47,36 +47,41 @@ T UndefinedAtomPbStrategy(T atom, TPseudoBooleanBlaster<T>* pbb)
   Trace("bv-pb") << "Undefined PB-blasting strategy for atom of kind: "
                  << atom.getKind() << "\n";
   return pbb->ZERO;  // Remove this
-  // Unreachable(); // TO-DO: remove comment
+  // Unreachable(); // TODO: remove comment
 }
 
 template <class T>
 T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
-  // TO-DO: consider adding bit-level equalities?
+  // TODO: consider adding bit-level equalities?
   Assert(atom.getKind() == Kind::EQUAL);
   Trace("bv-pb") << "theory::bv::pb::DefaultEqPb " << atom << "\n";
 
   T lhs = pbb->blastTerm(atom[0]);
-  Trace("bv-pb") << "LHS: " << atom[0] << "\n";
-  Trace("bv-pb") << "RESULT: " << lhs << "\n";
   T rhs = pbb->blastTerm(atom[1]);
-  Trace("bv-pb") << "RHS: " << atom[0] << "\n";
-  Trace("bv-pb") << "RESULT: " << rhs << "\n";
-//  Assert(lhs.first.size() == rhs.first.size());
-//
-//  std::ostringstream constraint;
-//  constraint << bvToUnsigned(lhs.first)
-//             << bvToUnsigned(rhs.first, -1)
-//             << "= 0 ;\n";
-//  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb result " << constraint.str();
-//
-//  std::vector<U> ret;
-//  ret.push_back(constraint.str());
-//  for (std::string c : lhs.second) { ret.push_back(c); }
-//  for (std::string c : rhs.second) { ret.push_back(c); }
-//  return ret;
-  return pbb->getNodeManager()->mkConstInt(Rational(0));  // Remove this
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> coefficients = bvToUnsigned(lhs[0].getNumChildren(), nm);
+  for (T c : bvToUnsigned(lhs[1].getNumChildren(), nm, -1))
+  {
+    coefficients.push_back(c);
+  }
+
+  std::vector<T> variables;
+  for (T v : lhs[0]) { variables.push_back(v); }
+  for (T v : rhs[0]) { variables.push_back(v); }
+
+  T result = mkConstraintNode(Kind::EQUAL, variables, coefficients, pbb->ZERO, nm);
+
+  std::unordered_set<T> constraints;
+  constraints.insert(result);
+  for (T c : lhs[1]) { constraints.insert(c); }
+  for (T c : rhs[1]) { constraints.insert(c); }
+
+  T constraints_node = mkAtomNode(constraints, nm);
+  Trace("bv-pb") << "theory::bv::pb::DefaultEqPb result " << constraints_node << "\n";
+  return constraints_node;
 }
 
 //template <class T, class U>
@@ -167,7 +172,6 @@ T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
   unsigned size = utils::getSize(term);
   Node variables = pbb->newVariable(size);
 
-
   std::vector<T> constraints;
   for (unsigned i = 0; i < size; i++)
   {
@@ -231,8 +235,8 @@ T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
     for (Node c: blasted[1]) { constraints.insert(c); }
   }
 
-  Trace("bv-pb") << variables << "\n";
-  Trace("bv-pb") << coefficients << "\n";
+  Trace("bv-pb") << "Variables: " << variables << "\n";
+  Trace("bv-pb") << "Coefficients: " << coefficients << "\n";
 
   /** extra_bits used to store possible overflow */
   int extra_bits = ceil_log2(term.getNumChildren());
@@ -246,7 +250,7 @@ T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
   std::move(aux.begin(), aux.end(), std::back_inserter(coefficients));
 
   constraints.insert(mkConstraintNode(Kind::EQUAL, variables, coefficients,
-                                     pbb->ZERO, nm));
+                                      pbb->ZERO, nm));
 
   T blasted_term = mkTermNode(result_vars, constraints, nm);
 
