@@ -18,10 +18,8 @@
 #ifndef CVC5__THEORY__BV__PB__NODE_BLASTER_H
 #define CVC5__THEORY__BV__PB__NODE_BLASTER_H
 
-#include <sstream>
-#include <vector>
-
 #include "theory/bv/pb/pb_blaster.h"
+#include "theory/theory.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -44,20 +42,10 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
   void blastAtom(Node atom) override;
   /** PB-blast term 'node' and return variables and constraints in 'sp'. */
   Node blastTerm(Node term) override;
-  /** Check if atom was already PB-blasted. */
-  bool hasAtom(Node atom) const override;
   /** Create a new variable not yet used in the solver. */
   Node newVariable(unsigned numBits=1) override;
-//  /** Store Subproblem representing a PB-blasted atom. */
-//  void storeAtom(Node atom) override;
-//  /** Simplify a vector of constraints. */
-//  void simplifyConstraints(std::vector<std::string> constraints, Subproblem& sp) override;
-//  /** Get PB-blasted Subproblem stored for atom. */
-//  Subproblem getStoredAtom(TNode node);
 
  private:
-  /** Caches PB-blasted atoms. */
-  std::unordered_map<Node, Node> d_pbAtoms;
   /** Counts variables used so far. */
   unsigned d_varCounter;
 };
