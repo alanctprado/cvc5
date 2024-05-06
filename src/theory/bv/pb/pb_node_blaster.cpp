@@ -41,18 +41,19 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
    */
   Trace("bv-pb-blast") << "Original atom: " << atom << "\n";
   if (hasAtom(atom)) return;
+
   Node result;
-//  if (atom.getKind() == Kind::NOT)
-//  {
-//    Node normalized = rewrite(atom[0]);
-//    Trace("bv-pb") << "Normalized atom: " << normalized << "; Kind: "
-//                   << normalized.getKind() << "\n";
-//    constraints = d_negAtomStrategies[
-//      static_cast<uint32_t>(normalized.getKind())
-//    ](normalized, this);
-//  }
-//
-//  else
+  if (atom.getKind() == Kind::NOT)
+  {
+    Node normalized = rewrite(atom[0]);
+    Trace("bv-pb") << "Normalized atom: " << normalized << "; Kind: "
+                   << normalized.getKind() << "\n";
+    result = d_negAtomStrategies[
+      static_cast<uint32_t>(normalized.getKind())
+    ](normalized, this);
+  }
+
+  else
   {
     Node normalized = rewrite(atom);
     Trace("bv-pb") << "\nNormalized atom: " << normalized << "; Kind: "
@@ -120,17 +121,12 @@ Node PseudoBooleanBlaster::newVariable(unsigned numBits)
   return getNodeManager()->mkNode(Kind::SEXPR, bits);
 }
 
-//void PseudoBooleanBlaster::storeTerm(TNode node, const Subproblem& sp)
-//{
-//  /** TO-DO: unordered_map::insert vs unordered_map::emplace ?? */
-//  d_termCache.emplace(node, sp);
-//}
-
 Node PseudoBooleanBlaster::blastTerm(Node term)
 {
   Assert(term.getType().isBitVector());
   if (hasTerm(term))
   {
+    Trace("bv-pb") << "Recovered bits " << getTerm(term)[0] << " for term " << term << "\n";
     return getTerm(term);
   }
   Kind kind = term.getKind();
