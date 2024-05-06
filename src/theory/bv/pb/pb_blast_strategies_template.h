@@ -54,8 +54,8 @@ template <class T>
 T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
   // TODO: consider adding bit-level equalities?
-  Assert(atom.getKind() == Kind::EQUAL);
   Trace("bv-pb") << "theory::bv::pb::DefaultEqPb " << atom << "\n";
+  Assert(atom.getKind() == Kind::EQUAL);
 
   T lhs = pbb->blastTerm(atom[0]);
   T rhs = pbb->blastTerm(atom[1]);
@@ -84,29 +84,40 @@ T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   return constraints_node;
 }
 
-//template <class T, class U>
-//std::vector<U> DefaultUltPb(TNode node, TPseudoBooleanBlaster<T,U>* pbb) {
-//  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb " << node  << "\n";
-//  Assert(node.getKind() == Kind::BITVECTOR_ULT);
-//
-//  TSubproblem<T, U> lhs, rhs; 
-//  pbb->blastTerm(node[0], lhs);
-//  pbb->blastTerm(node[1], rhs);
-//  Assert(lhs.first.size() == rhs.first.size());
-//
-//  std::ostringstream constraint;
-//  constraint << bvToUnsigned(rhs.first)
-//             << bvToUnsigned(lhs.first, -1)
-//             << ">= 1 ;\n";
-//  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb result " << constraint.str();
-//
-//  std::vector<U> ret;
-//  ret.push_back(constraint.str());
-//  for (std::string c : lhs.second) { ret.push_back(c); }
-//  for (std::string c : rhs.second) { ret.push_back(c); }
-//  return ret;
-//}
-//
+template <class T>
+T DefaultUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb " << atom  << "\n";
+  Assert(atom.getKind() == Kind::BITVECTOR_ULT);
+
+  T lhs = pbb->blastTerm(atom[0]);
+  T rhs = pbb->blastTerm(atom[1]);
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> coefficients = bvToUnsigned(rhs[0].getNumChildren(), nm);
+  for (T c : bvToUnsigned(lhs[0].getNumChildren(), nm, -1))
+  {
+    coefficients.push_back(c);
+  }
+
+  std::vector<T> variables;
+  for (T v : rhs[0]) { variables.push_back(v); }
+  for (T v : lhs[0]) { variables.push_back(v); }
+
+  T result = mkConstraintNode(Kind::GEQ, variables, coefficients, pbb->ONE, nm);
+
+  std::unordered_set<T> constraints;
+  constraints.insert(result);
+  for (T c : lhs[1]) { constraints.insert(c); }
+  for (T c : rhs[1]) { constraints.insert(c); }
+
+  T constraints_node = mkAtomNode(constraints, nm);
+
+  Trace("bv-pb") << "theory::bv::pb::DefaultUltPb result " << constraints_node << "\n";
+  return constraints_node;
+}
+
 ///**
 // * Negated Atom PB-Bitblasting strategies: 
 // * 
@@ -165,7 +176,7 @@ T DefaultVarPb(T term, TPseudoBooleanBlaster<T>* pbb)
 template <class T>
 T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
 {
-  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << term << "\n";
+  Trace("bv-pb") << "theory::bv::pb::DefaultConstPb blasting " << term << " ";
   Assert(term.getKind() == Kind::CONST_BITVECTOR);
 
   NodeManager* nm = pbb->getNodeManager();
