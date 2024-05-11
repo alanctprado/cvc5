@@ -15,8 +15,6 @@
 
 #include "theory/bv/bv_solver_pb.h"
 
-#include <sstream>
-#include <unordered_set>
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv.h"
 
@@ -30,8 +28,7 @@ BVSolverPseudoBoolean::BVSolverPseudoBoolean(Env& env,
                                              TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
       d_pbBlaster(new PseudoBooleanBlaster(env, s)),
-      d_facts(context()),
-      d_factConstraintCache(context())
+      d_facts(context())
 {
   Trace("bv-pb") << "Built BVSolverPseudoBoolean\n";
   initPbSolver();
@@ -42,27 +39,22 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   Trace("bv-pb") << "Post check with effort level " << level << "\n";
   if (level != Theory::Effort::EFFORT_FULL) { return; }
   /** Process PB-blast queue and generate sets of variables and constraints. */
-  Node final_result;
+  // Node final_result;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
     d_facts.pop();
     Node result;  // Variables and constraints of the current fact.
-    if (d_factConstraintCache.find(fact) == d_factConstraintCache.end())
+    if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) { Unhandled(); }
+    else
     {
-      if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) { Unhandled(); }
-      else
-      {
-        d_pbBlaster->blastAtom(fact);
-        // result = d_pbBlaster->getStoredAtom(fact);
-        // d_factConstraintCache[fact] = result;
-      }
+      d_pbBlaster->blastAtom(fact);
+      result = d_pbBlaster->getAtom(fact);
     }
-    else { result = d_factConstraintCache[fact]; }
 //    for (unsigned v : result.first) { problem_variables.insert(v); }
 //    for (std::string c : result.second) { problem_constraints.insert(c); }
   }
-  writeProblem(final_result);
+  // writeProblem(final_result);
 }
 
 void BVSolverPseudoBoolean::writeProblem(Node problem)
