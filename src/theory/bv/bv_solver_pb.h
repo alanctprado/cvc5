@@ -64,8 +64,6 @@ class BVSolverPseudoBoolean : public BVSolver
   * Gets populated on preNotifyFact().
   */
   context::CDQueue<Node> d_facts;
-  /** Stores the PB Constraint for a given fact. */
-  context::CDHashMap<Node, Node> d_factConstraintCache;
 };
 
 }  // namespace pb
