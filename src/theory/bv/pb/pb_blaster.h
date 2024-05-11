@@ -138,7 +138,7 @@ bool TPseudoBooleanBlaster<T>::hasAtom(T atom) const
 template <class T>
 void TPseudoBooleanBlaster<T>::storeAtom(T atom, const T blastedAtom)
 {
-  d_termCache.emplace(atom, blastedAtom);
+  d_atomCache.emplace(atom, blastedAtom);
 }
 
 template <class T>
