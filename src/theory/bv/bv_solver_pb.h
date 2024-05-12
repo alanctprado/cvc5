@@ -20,7 +20,6 @@
 #define CVC5__THEORY__BV__BV_SOLVER_PB_H
 
 #include "context/cdqueue.h"
-#include "context/cdhashmap.h"
 #include "theory/bv/pb/pb_node_blaster.h"
 #include "theory/bv/bv_solver.h"
 
@@ -55,8 +54,14 @@ class BVSolverPseudoBoolean : public BVSolver
  private:
   /** Initialize pseudo-boolean solver. */
   void initPbSolver();
+  /**
+   * Transform the node representation of a constraint to the OPB string that
+   * represents the same constraint;
+   */
+  std::string constraintToStringOPB(Node constraint,
+                                    std::unordered_set<Node> &variables);
   /** Write PB problem in OPB format */
-  void writeProblem(Node problem);
+  void convertProblemOPB(std::vector<Node> problem);
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
  /**
