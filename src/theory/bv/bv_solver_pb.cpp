@@ -14,6 +14,7 @@
  */
 
 #include "theory/bv/bv_solver_pb.h"
+#include <sstream>
 
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv.h"
@@ -39,7 +40,7 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   Trace("bv-pb") << "Post check with effort level " << level << "\n";
   if (level != Theory::Effort::EFFORT_FULL) { return; }
   /** Process PB-blast queue and generate sets of variables and constraints. */
-  // Node final_result;
+  std::vector<Node> blasted_atoms;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
@@ -51,19 +52,61 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
       d_pbBlaster->blastAtom(fact);
       result = d_pbBlaster->getAtom(fact);
     }
-//    for (unsigned v : result.first) { problem_variables.insert(v); }
-//    for (std::string c : result.second) { problem_constraints.insert(c); }
+    blasted_atoms.push_back(result);
   }
-  // writeProblem(final_result);
+  convertProblemOPB(blasted_atoms);
 }
 
-void BVSolverPseudoBoolean::writeProblem(Node problem)
+std::string BVSolverPseudoBoolean::
+constraintToStringOPB(Node constraint, std::unordered_set<Node> &variables)
 {
-//  std::ostringstream opb_file;
-//  opb_file << "* #variable= " << variables.size();
-//  opb_file << " #constraint= " << constraints.size() << "\n";
-//  for (std::string constraint : constraints) { opb_file << constraint; }
-//  Trace("bv-pb-opb") << opb_file.str();
+  std::ostringstream result;
+  Node form = constraint[0];
+
+  if (form.getKind() == Kind::MULT)
+  {
+    if (form[0].getConst<Rational>() >= 0) { result << "+" << form[0]; }
+    else { result << form[0].getConst<Rational>(); }
+    result << " " << form[1] << " ";
+    variables.emplace(form[1]);
+  }
+
+  else if (form.getKind() == Kind::ADD)
+  {
+    for (Node term : form)
+    {
+      if (term[0].getConst<Rational>() >= 0) { result << "+" << term[0]; }
+      else { result << term[0].getConst<Rational>(); }
+      result << " " << term[1] << " ";
+      variables.emplace(term[1]);
+    }
+  }
+
+  else {Unreachable();}
+
+  std::string literal = constraint.getKind() == Kind::EQUAL ? "=" : ">=";
+  result << literal << " " << constraint[1].getConst<Rational>() << " ;";
+  return result.str();
+}
+
+void BVSolverPseudoBoolean::convertProblemOPB(std::vector<Node> blasted_atoms)
+{
+  std::unordered_set<Node> variables;
+  std::set<std::string> ordered_constraints;
+  for (Node atom : blasted_atoms)
+  {
+    for (Node constraint : atom)
+    {
+      std::string constraint_str = constraintToStringOPB(constraint, variables);
+      ordered_constraints.emplace(constraint_str);
+    }
+
+  }
+  std::ostringstream opb_file;
+  opb_file << "* #variable= " << variables.size();
+  opb_file << " #constraint= " << ordered_constraints.size() << "\n";
+  for (std::string c : ordered_constraints) { opb_file << c << "\n"; }
+  Trace("bv-pb-opb") << opb_file.str();
 }
 
 bool BVSolverPseudoBoolean::preNotifyFact(TNode atom, bool pol, TNode fact,

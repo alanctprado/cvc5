@@ -39,7 +39,7 @@ class TPseudoBooleanBlaster
   NodeManager* d_nm;
 
  protected:
-  typedef std::unordered_map<T, T> TermDefMap;
+  typedef std::unordered_map<T, T> TermDefMap;  // TODO: CDHashMap?
   typedef std::unordered_map<T, T> AtomDefMap;
   TermDefMap d_termCache;
   AtomDefMap d_atomCache;
