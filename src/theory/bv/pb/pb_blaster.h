@@ -88,31 +88,26 @@ void TPseudoBooleanBlaster<T>::initAtomStrategies()
     d_negAtomStrategies[i] = UndefinedAtomPbStrategy<T>;
   }
   /** Setting default PB strategies for atoms */
-  d_atomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
-      DefaultEqPb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::EQUAL)] = DefaultEqPb<T>;
   d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
       DefaultUltPb<T>;
   /** Setting default PB strategies for negated atoms */
-  d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] =
-      NegatedEqPb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] = NegatedEqPb<T>;
 }
 
 template <class T>
 void TPseudoBooleanBlaster<T>::initTermStrategies()
 {
   for (uint32_t i = 0; i < static_cast<uint32_t>(Kind::LAST_KIND); i++)
-  {
     d_termStrategies[i] = UndefinedTermPbStrategy<T>;
-  }
   /** Setting default PB strategies for terms */
-  d_termStrategies[static_cast<uint32_t>(Kind::VARIABLE)] =
-      DefaultVarPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::VARIABLE)] = DefaultVarPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::CONST_BITVECTOR)] =
       DefaultConstPb<T>;
-   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
-       DefaultXorPb<T>;
-   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] =
-       DefaultAddPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
+      DefaultXorPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] =
+      DefaultAddPb<T>;
 }
 
 template <class T>
