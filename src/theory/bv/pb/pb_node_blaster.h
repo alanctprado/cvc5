@@ -32,7 +32,7 @@ namespace pb {
  * Implements the bare minimum to PB-blast bit-vector atoms/terms.
  */
 class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
-                                    protected EnvObj
+                             protected EnvObj
 {
  public:
   PseudoBooleanBlaster(Env& env, TheoryState* state);
@@ -43,7 +43,7 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
   /** PB-blast term 'node' and return variables and constraints in 'sp'. */
   Node blastTerm(Node term) override;
   /** Create a new variable not yet used in the solver. */
-  Node newVariable(unsigned numBits=1) override;
+  Node newVariable(unsigned numBits = 1) override;
 
  private:
   /** Counts variables used so far. */
