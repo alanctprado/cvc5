@@ -105,9 +105,6 @@ class TheoryBV : public Theory
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
 
-  /** Internal pseudo-Boolean BV solver */
-  std::unique_ptr<BVSolver> d_internal_pb;
-
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;
 
