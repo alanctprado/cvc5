@@ -106,9 +106,6 @@ class TheoryBV : public Theory
   /** Internal BV solver. */
   std::unique_ptr<BVSolver> d_internal;
 
-  /** The preprocess assertion utility */
-  BvPpAssert d_ppAssert;
-
   /** Internal pseudo-Boolean BV solver */
   std::unique_ptr<BVSolver> d_internal_pb;
 
