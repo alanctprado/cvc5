@@ -39,27 +39,25 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
   if (atom.getKind() == Kind::NOT)
   {
     Node normalized = rewrite(atom[0]);
-    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized << "; Kind: "
-                   << normalized.getKind() << "\n";
-    result = d_negAtomStrategies[
-      static_cast<uint32_t>(normalized.getKind())
-    ](normalized, this);
+    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized
+                         << "; Kind: " << normalized.getKind() << "\n";
+    result = d_negAtomStrategies[static_cast<uint32_t>(normalized.getKind())](
+        normalized, this);
   }
 
   else
   {
     Node normalized = rewrite(atom);
-    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized << "; Kind: "
-                   << normalized.getKind() << "\n";
-    result = d_atomStrategies[
-      static_cast<uint32_t>(normalized.getKind())
-    ](normalized, this);
+    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized
+                         << "; Kind: " << normalized.getKind() << "\n";
+    result = d_atomStrategies[static_cast<uint32_t>(normalized.getKind())](
+        normalized, this);
   }
 
   Trace("bv-pb-blast") << "Blasted atom:\n";
   if (TraceIsOn("bv-pb-blast"))
   {
-    for (Node c : result) { Trace("bv-pb-blast") << c << "\n"; }
+    for (Node c : result) Trace("bv-pb-blast") << c << "\n";
   }
 
   storeAtom(atom, result);
