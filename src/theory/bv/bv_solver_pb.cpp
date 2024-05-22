@@ -140,6 +140,9 @@ void BVSolverPseudoBoolean::initPbSolver()
 {
   switch (options().bv.bvPbSolver)
   {
+    case options::BvPbSolverMode::EXACT:
+      Trace("bv-pb") << "TO-DO: initialize Exact" << std::endl;
+      break;
     case options::BvPbSolverMode::ROUNDINGSAT:
       Trace("bv-pb") << "TO-DO: initialize RoundingSAT" << std::endl;
       break;
