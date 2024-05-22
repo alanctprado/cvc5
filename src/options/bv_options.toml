@@ -2,14 +2,24 @@ id     = "BV"
 name   = "Bitvector Theory"
 
 [[option]]
+  name       = "bvPbProof"
+  category   = "expert"
+  long       = "bv-pb-proof"
+  type       = "bool"
+  default    = "false"
+  help       = "TO-DO"
+
+[[option]]
   name       = "bvPbSolver"
-  category   = "regular"
+  category   = "expert"
   long       = "bv-pb-solver=MODE"
   type       = "BvPbSolverMode"
-  default    = "ROUNDINGSAT"
+  default    = "EXACT"
   predicates = ["checkBvPbSolver"]
   help       = "choose which sat solver to use, see --bv-pb-solver=help"
   help_mode  = "Pseudo-Boolean solver for PB-blasting backend."
+[[option.mode.EXACT]]
+  name = "exact"
 [[option.mode.ROUNDINGSAT]]
   name = "roundingsat"
 
