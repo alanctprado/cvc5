@@ -68,6 +68,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --kissat                 use the Kissat SAT solver
   --poly                   use the LibPoly library [default=yes]
   --cocoa                  use the CoCoA library
+  --exact                  use the Exact Pseudo-Boolean solver
   --editline               support the editline library
 
 Optional Path to Optional Packages:
@@ -126,6 +127,7 @@ gpl=default
 kissat=default
 poly=ON
 cocoa=default
+exact=default
 muzzle=default
 ninja=default
 profiling=default
@@ -262,6 +264,9 @@ do
 
     --cocoa) cocoa=ON;;
     --no-cocoa) cocoa=OFF;;
+
+    --exact) exact=ON;;
+    --no-exact) exact=OFF;;
 
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
@@ -430,6 +435,8 @@ fi
   && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $cocoa != default ] \
   && cmake_opts="$cmake_opts -DUSE_COCOA=$cocoa"
+[ $exact != default ] \
+  && cmake_opts="$cmake_opts -DUSE_EXACT=$exact"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$dep_path" != default ] \
