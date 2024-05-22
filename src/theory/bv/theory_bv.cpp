@@ -21,6 +21,7 @@
 #include "proof/proof_checker.h"
 #include "theory/bv/bv_solver_bitblast.h"
 #include "theory/bv/bv_solver_bitblast_internal.h"
+#include "theory/bv/bv_solver_pb.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -56,6 +57,7 @@ TheoryBV::TheoryBV(Env& env,
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
+  d_internal_pb.reset(new pb::BVSolverPseudoBoolean(env, &d_state, d_im));
   d_theoryState = &d_state;
   d_inferManager = &d_im;
 }
@@ -149,12 +151,22 @@ bool TheoryBV::preCheck(Effort e) { return d_internal->preCheck(e); }
 void TheoryBV::postCheck(Effort e)
 {
   d_invalidateModelCache = true;
+  if (options().bv.bvPbProof)
+  {
+    Trace("bv-pb") << "Post-checking on dummy PB solver...\n";
+    d_internal_pb->postCheck(e);
+  }
   d_internal->postCheck(e);
 }
 
 bool TheoryBV::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
+  if (options().bv.bvPbProof)
+  {
+    Trace("bv-pb") << "Prenotifying fact to dummy PB solver...\n";
+    d_internal_pb->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
+  }
   return d_internal->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
 }
 
