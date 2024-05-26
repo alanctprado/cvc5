@@ -99,7 +99,7 @@ class OptionsHandler
   /******************************* bv options *******************************/
 
   /** Check that the PB solver mode is compatible with other bv options */
-  void checkBvPbSolver(const std::string& flag, BvPbSolverMode m);
+  void checkBvPbSolver(const std::string& flag, BvPbSolver m);
   /** Check that the sat solver mode is compatible with other bv options */
   void checkBvSatSolver(const std::string& flag, BvSatSolverMode m);
 
