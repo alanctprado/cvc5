@@ -58,10 +58,8 @@ inline T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm);
 template <class T>
 std::vector<std::string> mkPbXor(T a, T b, T res);
 /** Other auxiliary functions */
-template <class T = Node>
-inline  // TODO: I don't really want to set T as Node
-    std::vector<T>
-    bvToUnsigned(unsigned size, NodeManager* nm, int sign = 1);
+template <class T = Node> // TODO: I don't really want to set T as Node
+inline std::vector<T> bvToUnsigned(unsigned sz, NodeManager* nm, int sign = 1);
 template <class T>
 int ceil_log2(T a);
 
