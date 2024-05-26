@@ -20,6 +20,8 @@
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv.h"
 
+#include "theory/bv/pb/exact.h"
+
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
@@ -108,6 +110,7 @@ void BVSolverPseudoBoolean::convertProblemOPB(std::vector<Node> blasted_atoms)
       ordered_constraints.emplace(constraint_str);
     }
   }
+  for (Node variable : variables) { d_pbSolver->addVariable(variable); }
   std::ostringstream opb_file;
   opb_file << "* #variable= " << variables.size();
   opb_file << " #constraint= " << ordered_constraints.size() << "\n";
@@ -140,12 +143,15 @@ void BVSolverPseudoBoolean::initPbSolver()
 {
   switch (options().bv.bvPbSolver)
   {
-    case options::BvPbSolverMode::EXACT:
-      Trace("bv-pb") << "TO-DO: initialize Exact" << std::endl;
+    case options::BvPbSolver::EXACT:
+      d_pbSolver.reset(new ExactSolver(
+          d_env,
+          statisticsRegistry(),
+          "theory::bv::BVSolverBitblast::"));
       break;
-    case options::BvPbSolverMode::ROUNDINGSAT:
+    case options::BvPbSolver::ROUNDINGSAT:
       Trace("bv-pb") << "TO-DO: initialize RoundingSAT" << std::endl;
-      break;
+      Unimplemented();
     default: Unimplemented();
   }
 }

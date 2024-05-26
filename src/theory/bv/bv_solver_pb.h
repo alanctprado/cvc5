@@ -22,6 +22,7 @@
 
 #include "context/cdqueue.h"
 #include "theory/bv/bv_solver.h"
+#include "theory/bv/pb/pb_solver.h"
 #include "theory/bv/pb/pb_node_blaster.h"
 
 namespace cvc5::internal {
@@ -63,6 +64,18 @@ class BVSolverPseudoBoolean : public BVSolver
  private:
   /** Initialize pseudo-boolean solver. */
   void initPbSolver();
+
+  /** PB solver back end (configured via options::bvSatSolver. */
+  std::unique_ptr<PbSolver<Node>> d_pbSolver;
+  /** Bit-blaster used to bit-blast atoms/terms. */
+  std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
+
+  /**
+   * PB-blast queue for facts sent to this solver.
+   * Gets populated on preNotifyFact().
+   */
+  context::CDQueue<Node> d_facts;
+
   /**
    * Transform the node representation of a constraint to the OPB string that
    * represents the same constraint;
@@ -71,13 +84,6 @@ class BVSolverPseudoBoolean : public BVSolver
                                     std::unordered_set<Node>& variables);
   /** Write PB problem in OPB format */
   void convertProblemOPB(std::vector<Node> problem);
-  /** Bit-blaster used to bit-blast atoms/terms. */
-  std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
-  /**
-   * PB-blast queue for facts sent to this solver.
-   * Gets populated on preNotifyFact().
-   */
-  context::CDQueue<Node> d_facts;
 };
 
 }  // namespace pb

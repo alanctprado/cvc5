@@ -13,7 +13,7 @@ name   = "Bitvector Theory"
   name       = "bvPbSolver"
   category   = "expert"
   long       = "bv-pb-solver=MODE"
-  type       = "BvPbSolverMode"
+  type       = "BvPbSolver"
   default    = "EXACT"
   predicates = ["checkBvPbSolver"]
   help       = "choose which sat solver to use, see --bv-pb-solver=help"
