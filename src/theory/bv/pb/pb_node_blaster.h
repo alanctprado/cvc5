@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__THEORY__BV__PB__NODE_BLASTER_H
-#define CVC5__THEORY__BV__PB__NODE_BLASTER_H
+#ifndef CVC5__THEORY__BV__PB__PB_NODE_BLASTER_H
+#define CVC5__THEORY__BV__PB__PB_NODE_BLASTER_H
 
 #include "theory/bv/pb/pb_blaster.h"
 #include "theory/theory.h"
@@ -55,4 +55,4 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
 }  // namespace theory
 }  // namespace cvc5::internal
 
-#endif
+#endif  // CVC5__THEORY__BV__PB__PB_NODE_BLASTER_H
