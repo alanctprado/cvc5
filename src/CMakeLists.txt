@@ -654,6 +654,10 @@ libcvc5_add_sources(
   theory/bv/bv_solver_bitblast_internal.h
   theory/bv/int_blaster.cpp
   theory/bv/int_blaster.h
+  theory/bv/pb/pb_solver_types.h
+  theory/bv/pb/pb_solver.h
+  theory/bv/pb/exact.cpp
+  theory/bv/pb/exact.h
   theory/bv/pb/pb_blaster.h
   theory/bv/pb/pb_blast_utils.h
   theory/bv/pb/pb_blast_strategies_template.h
