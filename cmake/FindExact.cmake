@@ -20,6 +20,7 @@ include(deps-helper)
 include(ExternalProject)
 
 #TODO: add rules to use the user's installation of Exact if there is one
+set(Exact_FOUND_SYSTEM FALSE)
 if(NOT ENABLE_AUTO_DOWNLOAD)
   message(FATAL_ERROR "Could not find the required dependency Exact\
                       ${depname} in the system. Please use --auto-download to \
@@ -45,14 +46,14 @@ ExternalProject_Add(
   URL_HASH SHA256=2d68e05aecd57ee1803367b4e368c82502be867d95a06059543d1b0dc783bf9a
   PATCH_COMMAND ${SHELL} ${CMAKE_CURRENT_LIST_DIR}/deps-utils/exact-cb6ec0f-patch.sh <SOURCE_DIR>/CMakeLists.txt
   BUILD_IN_SOURCE YES
-  CONFIGURE_COMMAND ${CMAKE_COMMAND} -B build -DCMAKE_BUILD_TYPE=Release -Dbuild_result=StaticLib
+  CONFIGURE_COMMAND ${CMAKE_COMMAND} -B build -DCMAKE_BUILD_TYPE=Release -Dbuild_result=StaticLib -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build
-  INSTALL_COMMAND ""
+  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libExact.a ${DEPS_BASE}/lib/libExact.a
   BUILD_BYPRODUCTS <INSTALL_DIR>/build/libExact.a
 )
 
 set(Exact_INCLUDE_DIR "${DEPS_BASE}/src/")
-set(Exact_LIBRARIES "${DEPS_BASE}/build/libExact.a")
+set(Exact_LIBRARIES "${DEPS_BASE}/lib/libExact.a")
 
 set(Exact_FOUND TRUE)
 
@@ -61,6 +62,7 @@ set_target_properties(Exact PROPERTIES IMPORTED_LOCATION "${Exact_LIBRARIES}")
 set_target_properties(Exact PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Exact_INCLUDE_DIR}")
 
 mark_as_advanced(Exact_FOUND)
+mark_as_advanced(Exact_FOUND_SYSTEM)
 mark_as_advanced(Exact_INCLUDE_DIR)
 mark_as_advanced(Exact_LIBRARIES)
 
