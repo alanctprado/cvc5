@@ -17,6 +17,8 @@
 
 #include "cvc5_private.h"
 
+#ifdef CVC5_USE_EXACT
+
 #ifndef CVC5__THEORY__BV__PB__EXACT_H
 #define CVC5__THEORY__BV__PB__EXACT_H
 
@@ -87,3 +89,4 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
 }  // namespace cvc5::internal
 
 #endif  // CVC5__THEORY__BV__PB__EXACT_H
+#endif  // CVC5_USE_EXACT

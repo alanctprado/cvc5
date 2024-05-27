@@ -144,10 +144,13 @@ void BVSolverPseudoBoolean::initPbSolver()
   switch (options().bv.bvPbSolver)
   {
     case options::BvPbSolver::EXACT:
+      // TODO: move guard / creation to a factory class
+      #ifdef CVC5_USE_EXACT
       d_pbSolver.reset(new ExactSolver(
           d_env,
           statisticsRegistry(),
           "theory::bv::BVSolverBitblast::"));
+      #endif
       break;
     case options::BvPbSolver::ROUNDINGSAT:
       Trace("bv-pb") << "TO-DO: initialize RoundingSAT" << std::endl;
