@@ -15,6 +15,8 @@
  * Implementation of the Exact PB solver for cvc5 (bit-vectors).
  */
 
+#ifdef CVC5_USE_EXACT
+
 #include "theory/bv/pb/exact.h"
 
 //#include "base/check.h"
@@ -1214,3 +1216,5 @@ ExactSolver::Statistics::Statistics(StatisticsRegistry& registry, const std::str
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
+
+#endif  // CVC5_USE_EXACT
