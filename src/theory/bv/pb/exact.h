@@ -45,7 +45,7 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
   /* ExactSolver interface -------------------------------------------------- */
   void addConstraint(Node) override;
   void addVariable(Node) override;
-  PbValue solve() override;
+  PbSolveState solve() override;
 
 // private:   TODO: constructor should be private (factory)
   /**
@@ -62,7 +62,6 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
               const std::string& name = "",
               bool logProofs = false);
  private:
-
   /**
    * Initialize PB solver instance.
    * Note: Split out to not call virtual functions in constructor.
@@ -81,6 +80,12 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
     Statistics(StatisticsRegistry& registry, const std::string& prefix);
   };
   Statistics d_statistics;
+
+  /** Set of variables already in the solver */
+  std::unordered_set<Node> d_variableSet;
+
+  /** Set of constraints already in the solver */
+  std::unordered_set<Node> d_constraintSet;
 };
 
 }  // namespace pb
