@@ -35,7 +35,7 @@ public:
   /** Assert a constraint to the solver. */
   virtual void addConstraint(T constraint) = 0;
   /** Check the satisfiability of the added clauses */
-  virtual PbValue solve() = 0;
+  virtual PbSolveState solve() = 0;
 //  /** Call modelValue() when the search is done.*/
 //  virtual PbValue modelValue(PbLiteral l) = 0;
 
