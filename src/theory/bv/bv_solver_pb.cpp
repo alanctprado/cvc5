@@ -43,22 +43,26 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   Trace("bv-pb") << "Post check with effort level " << level << "\n";
   if (level != Theory::Effort::EFFORT_FULL) return;
   /** Process PB-blast queue and generate sets of variables and constraints. */
-  std::vector<Node> blasted_atoms;
+  // std::vector<Node> blasted_atoms;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
     d_facts.pop();
     Node result;  // Variables and constraints of the current fact.
-    if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM)
-      Unhandled();
-    else
+    if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) Unhandled();
+    d_pbBlaster->blastAtom(fact);
+    result = d_pbBlaster->getAtom(fact);
+    // blasted_atoms.push_back(result);
+    for (Node constraint : result)
     {
-      d_pbBlaster->blastAtom(fact);
-      result = d_pbBlaster->getAtom(fact);
+      d_pbSolver->addConstraint(constraint);
     }
-    blasted_atoms.push_back(result);
   }
-  convertProblemOPB(blasted_atoms);
+  // convertProblemOPB(blasted_atoms);
+  PbSolveState s = d_pbSolver->solve();
+  if (s == PbSolveState::PB_SAT) Trace("bv-pb") << "SATISFIABLE\n";
+  else if (s == PbSolveState::PB_UNSAT) Trace("bv-pb") << "UNSATISFIABLE\n";
+  else Unhandled();
 }
 
 std::string BVSolverPseudoBoolean::constraintToStringOPB(
