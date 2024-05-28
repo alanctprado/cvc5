@@ -30,12 +30,12 @@ namespace pb {
 typedef unsigned ConstraintId;
 
 /**
- * Boolean values of the PB solver.
+ * Possible states of the PB solver.
  */
-enum PbValue {
-  PB_VALUE_UNKNOWN,
-  PB_VALUE_TRUE,
-  PB_VALUE_FALSE
+enum PbSolveState {
+  PB_UNKNOWN,
+  PB_SAT,
+  PB_UNSAT
 };
 
 }  // namespace pb
