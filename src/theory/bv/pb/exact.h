@@ -10,9 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Wrapper for CaDiCaL SAT Solver.
+ * Wrapper for the Exact PB Solver for cvc5 (bit-vectors).
  *
- * Implementation of the CaDiCaL SAT solver for cvc5 (bit-vectors).
  */
 
 #include "cvc5_private.h"
@@ -37,7 +36,7 @@ namespace pb {
 
 class ExactSolver : public PbSolver<Node>, protected EnvObj
 {
-  // friend class SatSolverFactory;
+  // friend class PbSolverFactory;
 
  public:
   ~ExactSolver() override = default;
@@ -47,14 +46,14 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
   void addVariable(Node) override;
   PbSolveState solve() override;
 
-// private:   TODO: constructor should be private (factory)
+// private:   TODO: should the constructor be private (factory)?
   /**
    * Constructor.
-   * Private to disallow creation outside of SatSolverFactory.
+   * Private to disallow creation outside of PbSolverFactory.
    * Function init() must be called after creation.
    * @param env       The associated environment.
    * @param registry  The associated statistics registry.
-   * @param name      The name of the SAT solver.
+   * @param name      The name of the PB solver.
    * @param logProofs Whether to log proofs
    */
   ExactSolver(Env& env,
