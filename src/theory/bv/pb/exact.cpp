@@ -84,7 +84,7 @@ void ExactSolver::addConstraint(Node constraint)
 
   else if (linear_form.getKind() == Kind::ADD)
   {
-    for (Node term : linear_form)
+    for (const Node& term : linear_form)
     {
       Assert(term.getNumChildren() == 2);
       Assert(term[0].isConst());
