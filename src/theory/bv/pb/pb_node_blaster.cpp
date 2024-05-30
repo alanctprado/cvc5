@@ -57,7 +57,7 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
   Trace("bv-pb-blast") << "Blasted atom:\n";
   if (TraceIsOn("bv-pb-blast"))
   {
-    for (Node c : result) Trace("bv-pb-blast") << c << "\n";
+    for (const Node& c : result) Trace("bv-pb-blast") << c << "\n";
   }
 
   storeAtom(atom, result);

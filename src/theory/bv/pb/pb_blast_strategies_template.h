@@ -55,12 +55,12 @@ T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   NodeManager* nm = pbb->getNodeManager();
   std::vector<T> coefficients = bvToUnsigned(lhs[0].getNumChildren(), nm);
-  for (T c : bvToUnsigned(lhs[1].getNumChildren(), nm, -1))
+  for (const T& c : bvToUnsigned(lhs[1].getNumChildren(), nm, -1))
     coefficients.push_back(c);
 
   std::vector<T> variables;
-  for (T v : lhs[0]) variables.push_back(v);
-  for (T v : rhs[0]) variables.push_back(v);
+  for (const T& v : lhs[0]) variables.push_back(v);
+  for (const T& v : rhs[0]) variables.push_back(v);
 
   T atom_constraint =
       mkConstraintNode(Kind::EQUAL, variables, coefficients, pbb->d_ZERO, nm);
@@ -69,8 +69,8 @@ T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   std::unordered_set<T> constraints;
   constraints.insert(atom_constraint);
-  for (T c : lhs[1]) constraints.insert(c);
-  for (T c : rhs[1]) constraints.insert(c);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
   return mkAtomNode(constraints, nm);
 }
 
@@ -86,12 +86,12 @@ T DefaultUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   NodeManager* nm = pbb->getNodeManager();
   std::vector<T> coefficients = bvToUnsigned(rhs[0].getNumChildren(), nm);
-  for (T c : bvToUnsigned(lhs[0].getNumChildren(), nm, -1))
+  for (const T& c : bvToUnsigned(lhs[0].getNumChildren(), nm, -1))
     coefficients.push_back(c);
 
   std::vector<T> variables;
-  for (T v : rhs[0]) variables.push_back(v);
-  for (T v : lhs[0]) variables.push_back(v);
+  for (const T& v : rhs[0]) variables.push_back(v);
+  for (const T& v : lhs[0]) variables.push_back(v);
 
   T atom_constraint =
       mkConstraintNode(Kind::GEQ, variables, coefficients, pbb->d_ONE, nm);
@@ -100,8 +100,8 @@ T DefaultUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   std::unordered_set<T> constraints;
   constraints.emplace(atom_constraint);
-  for (T c : lhs[1]) constraints.insert(c);
-  for (T c : rhs[1]) constraints.insert(c);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
   return mkAtomNode(constraints, nm);
 }
 
@@ -126,7 +126,7 @@ T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   Assert(blasted_xor[0].getNumChildren() == utils::getSize(atom[0]));
 
   std::vector<T> variables;
-  for (T v : blasted_xor[0]) variables.push_back(v);
+  for (const T& v : blasted_xor[0]) variables.push_back(v);
   T atom_constraint = mkConstraintNode(
       Kind::GEQ, variables, std::vector<int>{1, 1, 1, 1}, 1, nm);
   Trace("bv-pb") << "theory::bv::pb::NegatedEqPb resulted in constraint "
@@ -134,7 +134,7 @@ T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   std::unordered_set<T> constraints;
   constraints.emplace(atom_constraint);
-  for (T c : blasted_xor[1]) constraints.emplace(c);
+  for (const T& c : blasted_xor[1]) constraints.emplace(c);
   return mkAtomNode(constraints, nm);
 }
 
@@ -210,12 +210,12 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
   std::unordered_set<T> constraints;
   for (unsigned i = 0; i < num_bits; i++)
   {
-    for (T c : mkPbXor(lhs[0][i], rhs[0][i], variables[i], nm))
+    for (const T& c : mkPbXor(lhs[0][i], rhs[0][i], variables[i], nm))
       constraints.emplace(c);
   }
 
-  for (T c : lhs[1]) constraints.insert(c);
-  for (T c : rhs[1]) constraints.insert(c);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
 
   T blasted_term = mkTermNode(variables, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
@@ -242,16 +242,16 @@ T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
   {
     T blasted = pbb->blastTerm(term[i]);
     Assert(blasted[0].getNumChildren() == num_bits);
-    for (T v : blasted[0]) variables.push_back(v);
+    for (const T& v : blasted[0]) variables.push_back(v);
     std::copy(aux.begin(), aux.end(), std::back_inserter(coefficients));
-    for (T c : blasted[1]) constraints.insert(c);
+    for (const T& c : blasted[1]) constraints.insert(c);
   }
 
   /** extra_bits used to store possible overflow */
   int extra_bits = ceil_log2(term.getNumChildren());
   T extra_vars = pbb->newVariable(extra_bits);
-  for (T v : extra_vars) variables.push_back(v);
-  for (T v : term_vars) variables.push_back(v);
+  for (const T& v : extra_vars) variables.push_back(v);
+  for (const T& v : term_vars) variables.push_back(v);
 
   aux = bvToUnsigned(num_bits + extra_bits, nm, -1);
   std::move(aux.begin(), aux.end(), std::back_inserter(coefficients));
