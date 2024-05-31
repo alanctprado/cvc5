@@ -49,10 +49,18 @@ ExternalProject_Add(
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -B build -DCMAKE_BUILD_TYPE=Release -Dbuild_result=StaticLib -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build
   INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libExact.a ${DEPS_BASE}/lib/libExact.a
+  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/src <INSTALL_DIR>/include/exact
   BUILD_BYPRODUCTS <INSTALL_DIR>/build/libExact.a
 )
 
-set(Exact_INCLUDE_DIR "${DEPS_BASE}/src/")
+add_custom_command(
+  TARGET Exact-EP
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E remove ${DEPS_BASE}/include/exact/*.cpp
+  COMMAND ${CMAKE_COMMAND} -E remove ${DEPS_BASE}/include/exact/**/*.cpp
+)
+
+set(Exact_INCLUDE_DIR "${DEPS_BASE}/include/exact")
 set(Exact_LIBRARIES "${DEPS_BASE}/lib/libExact.a")
 
 set(Exact_FOUND TRUE)
