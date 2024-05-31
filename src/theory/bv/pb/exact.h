@@ -21,7 +21,7 @@
 #ifndef CVC5__THEORY__BV__PB__EXACT_H
 #define CVC5__THEORY__BV__PB__EXACT_H
 
-#include <Exact-EP/src/Exact.hpp>
+#include <Exact.hpp>
 
 //#include "context/cdhashset.h"
 #include "theory/bv/pb/pb_solver.h"
