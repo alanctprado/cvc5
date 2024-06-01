@@ -29,6 +29,11 @@
 #include "smt/env.h"
 #include "util/string.h"
 
+
+// TODO: remove
+#include "options/prop_options.h"
+///////////////
+
 namespace cvc5::internal {
 namespace prop {
 
@@ -347,8 +352,11 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
 
   // get the proof based on the proof mode
   options::PropProofMode pmode = options().proof.propProofMode;
+  // TODO: remove smode!
+  options::SatSolverMode smode = options().prop.satSolver;
   std::shared_ptr<ProofNode> conflictProof;
-  if (pmode == options::PropProofMode::PROOF)
+  if (pmode == options::PropProofMode::PROOF && smode != options::SatSolverMode::CADICAL)
+  /////////////////////
   {
     // take proof from SAT solver as is
     conflictProof = d_satSolver->getProof();
@@ -487,6 +495,9 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   // the stream which stores the DIMACS of the computed clauses
   std::fstream dout(dinputFile.str(), std::ios::out);
   options::PropProofMode pmode = options().proof.propProofMode;
+  // TODO: remove
+  options::SatSolverMode smode = options().prop.satSolver;
+  ///////////////
   // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
   bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
                   && options().proof.satProofMinDimacs);
@@ -538,6 +549,15 @@ void PropPfManager::getProofInternal(CDProof* cdp)
     // arguments.
     r = ProofRule::SAT_EXTERNAL_PROVE;
   }
+  // TODO: remove the following block
+  else if (pmode == options::PropProofMode::PROOF && smode == options::SatSolverMode::CADICAL)
+  {
+    // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
+    // arguments.
+    std::shared_ptr<ProofNode> foo = d_satSolver->getProof();
+    r = ProofRule::SAT_EXTERNAL_PROVE;
+  }
+  ///////////////////////////////////
   else
   {
     Assert(false) << "Unknown proof mode " << pmode;
