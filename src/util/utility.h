@@ -102,6 +102,22 @@ std::ostream& operator<<(std::ostream& out, const std::optional<T>& m)
  */
 std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
+/**
+ * Creates and opens a temporary file. The file is opened as binary file for
+ * update (as if by fopen with "wb+" mode). The filename of the file is
+ * guaranteed to be unique within the filesystem.
+ *
+ * @return A pointer to the file stream associated with the file or null pointer
+ * if an error has occurred.
+ *
+ * Note: If the program closes the file, e.g. by executing std::fclose, the file
+ * is automatically deleted. If the program terminates normally (by calling
+ * std::exit, returning from main, etc), the files created in this method are
+ * also automatically deleted. If the program terminates abnormally, it is
+ * implementation-defined whether these temporary files are deleted.
+ */
+std::FILE* openTmpFile();
+
 }  // namespace cvc5::internal
 
 #endif /* CVC5__UTILITY_H */
