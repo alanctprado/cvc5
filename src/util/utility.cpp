@@ -17,6 +17,7 @@
 
 #include <unistd.h>
 
+#include <cstdio>
 #include <cstdlib>
 
 #include "base/check.h"
@@ -50,5 +51,7 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
   delete[] tmpName;
   return tmpStream;
 }
+
+std::FILE* openTmpFile() { return std::tmpfile(); }
 
 }  // namespace cvc5::internal
