@@ -39,13 +39,15 @@ class SatSolverFactory
                                        StatisticsRegistry& registry,
                                        ResourceManager* resmgr,
                                        const std::string& name = "",
-                                       bool logProofs = false);
+                                       bool logProofs = false,
+                                       bool captureProof = false);
 
   static CDCLTSatSolver* createCadicalCDCLT(Env& env,
                                             StatisticsRegistry& registry,
                                             ResourceManager* resmgr,
                                             const std::string& name = "",
-                                            bool logProofs = false);
+                                            bool logProofs = false,
+                                            bool captureProof = false);
 
   static SatSolver* createCryptoMinisat(StatisticsRegistry& registry,
                                         ResourceManager* resmgr,
