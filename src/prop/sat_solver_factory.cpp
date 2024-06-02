@@ -51,9 +51,11 @@ CDCLTSatSolver* SatSolverFactory::createCadical(Env& env,
                                                 StatisticsRegistry& registry,
                                                 ResourceManager* resmgr,
                                                 const std::string& name,
-                                                bool logProofs)
+                                                bool logProofs,
+                                                bool captureProof)
 {
-  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs);
+  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs,
+                                         captureProof);
   res->init();
   res->setResourceLimit(resmgr);
   return res;
@@ -64,9 +66,11 @@ CDCLTSatSolver* SatSolverFactory::createCadicalCDCLT(
     StatisticsRegistry& registry,
     ResourceManager* resmgr,
     const std::string& name,
-    bool logProofs)
+    bool logProofs,
+    bool captureProof)
 {
-  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs);
+  CadicalSolver* res = new CadicalSolver(env, registry, name, logProofs,
+                                         captureProof);
   res->setResourceLimit(resmgr);
   return res;
 }

@@ -99,15 +99,18 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    * Constructor.
    * Private to disallow creation outside of SatSolverFactory.
    * Function init() must be called after creation.
-   * @param env       The associated environment.
-   * @param registry  The associated statistics registry.
-   * @param name      The name of the SAT solver.
-   * @param logProofs Whether to log proofs
+   * @param env          The associated environment.
+   * @param registry     The associated statistics registry.
+   * @param name         The name of the SAT solver.
+   * @param logProofs    Whether to log proofs.
+   * @param captureProof Whether the proof produced by CaDiCaL is used to
+   *                     generate a self contained ProofNode proving false.
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
                 const std::string& name = "",
-                bool logProofs = false);
+                bool logProofs = false,
+                bool captureProof = false);
 
   /**
    * Initialize SAT solver instance.
@@ -144,8 +147,12 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   unsigned d_nextVarIdx;
   /** Whether we are logging proofs */
   bool d_logProofs;
+  /** Whether we are generating a ProofNode */
+  bool d_captureProof;
   /** The proof file */
-  std::string d_pfFile;
+  std::FILE* d_pfFile;
+  /** The proof file path */
+  std::string d_pfPath;
   /**
    * Whether we are in SAT mode. If true, the SAT solver returned satisfiable
    * and we are allowed to query model values from the solver.
