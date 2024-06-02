@@ -17,6 +17,7 @@
 
 #include "prop/cadical.h"
 
+#include <cstdio>
 #include <deque>
 
 #include "base/check.h"
@@ -952,7 +953,8 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
                              const std::string& name,
-                             bool logProofs)
+                             bool logProofs,
+                             bool captureProof)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
@@ -960,6 +962,7 @@ CadicalSolver::CadicalSolver(Env& env,
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
       d_logProofs(logProofs),
+      d_captureProof(captureProof),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -967,6 +970,27 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
+  if (d_logProofs or d_captureProof)
+  {
+    if (d_logProofs)
+    {
+      d_pfPath = options().driver.filename + ".drat_proof.txt";
+      d_pfFile = std::fopen(d_pfPath.c_str(), "r");
+      AlwaysAssert(d_pfFile != nullptr) << "Failed opening file " << d_pfPath
+                                  << " for CaDiCaL proof logging\n";
+    }
+    else if (d_captureProof)
+    {
+      d_pfFile = openTmpFile();
+    }
+
+    if (!options().proof.dratBinaryFormat) d_solver->set("binary", 0);
+    d_solver->set("inprocessing", 0);
+    /** NOTE: We use a `FILE*` instead of a path to avoid race conditions! */
+    d_solver->trace_proof(d_pfFile, "name");
+    /** TODO: figure out if "name" is important */
+  }
+
   d_true = newVar();
   d_false = newVar();
 
@@ -982,20 +1006,12 @@ void CadicalSolver::init()
   d_solver->add(0);
   d_solver->add(-toCadicalVar(d_false));
   d_solver->add(0);
-
-  if (d_logProofs)
-  {
-    d_pfFile = options().driver.filename + ".drat_proof.txt";
-    if (!options().proof.dratBinaryFormat)
-    {
-      d_solver->set("binary", 0);
-    }
-    d_solver->set("inprocessing", 0);
-    d_solver->trace_proof(d_pfFile.c_str());
-  }
 }
 
-CadicalSolver::~CadicalSolver() {}
+CadicalSolver::~CadicalSolver()
+{
+  if (d_pfFile) fclose(d_pfFile);
+}
 
 /**
  * Terminator class that notifies CaDiCaL to terminate when the resource limit
@@ -1253,9 +1269,20 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
-  Trace("drat-proof") << "This is the way\n";
-  // do not throw an exception, since we test whether the proof is available
-  // by comparing it to nullptr.
+  /**
+   * Do not throw an exception, since we test whether the proof is available by
+   * comparing it to nullptr.
+   */
+  if (!d_captureProof) return nullptr;
+
+  fseek(d_pfFile, 0, SEEK_SET);
+  char ch;
+  while ((ch = fgetc(d_pfFile)) != EOF) {
+      Trace("drat-proof") << ch;
+  }
+  fseek(d_pfFile, 0, SEEK_END);
+
+  // TODO: actually return the proof node :)
   return nullptr;
 }
 
@@ -1263,7 +1290,7 @@ std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {
   Assert(d_logProofs);
   d_solver->flush_proof_trace();
-  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfFile))};
+  std::vector<Node> args = {NodeManager::currentNM()->mkConst(String(d_pfPath))};
   // The proof is DRAT_REFUTATION whose premises is all inputs + theory lemmas.
   // The DRAT file is an argument to the file proof.
   return std::pair<ProofRule, std::vector<Node>>(ProofRule::DRAT_REFUTATION,

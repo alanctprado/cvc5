@@ -107,6 +107,9 @@ std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
  * update (as if by fopen with "wb+" mode). The filename of the file is
  * guaranteed to be unique within the filesystem.
  *
+ * NOTE: we want to generate the pointer to a file (instead of a temporary path)
+ * in order to avoid race conditions!
+ *
  * @return A pointer to the file stream associated with the file or null pointer
  * if an error has occurred.
  *
