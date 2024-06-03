@@ -1027,7 +1027,16 @@ bool SetDefaults::incompatibleWithProofs(Options& opts,
     return true;
   }
   // specific to SAT solver
-  if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
+  if (opts.prop.satSolver == options::SatSolverMode::CADICAL)
+  {
+    if (opts.proof.propProofMode == options::PropProofMode::PROOF &&
+        !opts.proof.proofDratExperimental)
+    {
+      reason << "(resolution) proofs not supported in cadical";
+      return true;
+    }
+  }
+  else if (opts.prop.satSolver == options::SatSolverMode::MINISAT)
   {
     if (opts.proof.propProofMode == options::PropProofMode::SKETCH)
     {

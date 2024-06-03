@@ -963,6 +963,8 @@ CadicalSolver::CadicalSolver(Env& env,
       d_nextVarIdx(1),
       d_logProofs(logProofs),
       d_captureProof(captureProof),
+      d_pfPath(""),
+      d_pfFile(nullptr),
       d_inSatMode(false),
       d_statistics(registry, name)
 {
@@ -1010,7 +1012,7 @@ void CadicalSolver::init()
 
 CadicalSolver::~CadicalSolver()
 {
-  if (d_pfFile) fclose(d_pfFile);
+  if (d_pfFile != nullptr) fclose(d_pfFile);
 }
 
 /**
@@ -1273,7 +1275,7 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
    * Do not throw an exception, since we test whether the proof is available by
    * comparing it to nullptr.
    */
-  if (!d_captureProof) return nullptr;
+  if (!options().proof.proofDratExperimental) return nullptr;
 
   fseek(d_pfFile, 0, SEEK_SET);
   char ch;

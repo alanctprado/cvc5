@@ -224,6 +224,14 @@ name   = "Proof"
   help       = "Print reference to original file instead of redeclaring"
 
 [[option]]
+  name       = "proofDratExperimental"
+  category   = "expert"
+  long       = "proof-drat-experimental"
+  type       = "bool"
+  default    = "false"
+  help       = "Enable the use of CaDiCaL DRAT proofs (experimental)"
+
+[[option]]
   name       = "dratBinaryFormat"
   category   = "expert"
   long       = "drat-binary-format"
