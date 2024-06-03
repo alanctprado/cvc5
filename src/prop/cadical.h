@@ -149,10 +149,10 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   bool d_logProofs;
   /** Whether we are generating a ProofNode */
   bool d_captureProof;
-  /** The proof file */
-  std::FILE* d_pfFile;
   /** The proof file path */
   std::string d_pfPath;
+  /** The proof file */
+  std::FILE* d_pfFile;
   /**
    * Whether we are in SAT mode. If true, the SAT solver returned satisfiable
    * and we are allowed to query model values from the solver.
