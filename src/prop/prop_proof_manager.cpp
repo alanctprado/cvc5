@@ -348,7 +348,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   // get the proof based on the proof mode
   options::PropProofMode pmode = options().proof.propProofMode;
   std::shared_ptr<ProofNode> conflictProof;
-  if (pmode == options::PropProofMode::PROOF && !options().proof.proofDratExperimental)
+  if (pmode == options::PropProofMode::PROOF)
   {
     // take proof from SAT solver as is
     conflictProof = d_satSolver->getProof();
@@ -385,7 +385,7 @@ std::shared_ptr<ProofNode> PropPfManager::getProof(bool connectCnf)
   }
   // Must clone if we are using the original proof, since we don't want to
   // modify the original SAT proof.
-  if (pmode == options::PropProofMode::PROOF && !options().proof.proofDratExperimental)
+  if (pmode == options::PropProofMode::PROOF)
   {
     conflictProof = conflictProof->clone();
   }
@@ -487,7 +487,6 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   // the stream which stores the DIMACS of the computed clauses
   std::fstream dout(dinputFile.str(), std::ios::out);
   options::PropProofMode pmode = options().proof.propProofMode;
-
   // minimize only if SAT_EXTERNAL_PROVE and satProofMinDimacs is true.
   bool minimal = (pmode == options::PropProofMode::SAT_EXTERNAL_PROVE
                   && options().proof.satProofMinDimacs);
@@ -537,11 +536,6 @@ void PropPfManager::getProofInternal(CDProof* cdp)
   {
     // if SAT_EXTERNAL_PROVE, the rule is fixed and there are no additional
     // arguments.
-    r = ProofRule::SAT_EXTERNAL_PROVE;
-  }
-  else if (options().proof.proofDratExperimental)  // TODO: remove block
-  {
-    std::shared_ptr<ProofNode> foo = d_satSolver->getProof();
     r = ProofRule::SAT_EXTERNAL_PROVE;
   }
   else
