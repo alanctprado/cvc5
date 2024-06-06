@@ -1292,8 +1292,6 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
 
   CDProof cdp(d_env);
   NodeManager* nm = NodeManager::currentNM();
-
-  std::vector<std::pair<bool, SatClause>> clauses;
   std::vector<Node> drat_steps;
 
   std::stringstream drat_proof;
