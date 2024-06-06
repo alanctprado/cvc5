@@ -19,11 +19,14 @@
 
 #include <cstdio>
 #include <deque>
+#include <sstream>
 
 #include "base/check.h"
 #include "options/main_options.h"
 #include "options/proof_options.h"
+#include "prop/sat_solver_types.h"
 #include "prop/theory_proxy.h"
+#include "theory/rewriter.h"
 #include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/string.h"
@@ -1272,20 +1275,53 @@ std::vector<Node> CadicalSolver::getOrderHeap() const { return {}; }
 std::shared_ptr<ProofNode> CadicalSolver::getProof()
 {
   /**
-   * Do not throw an exception, since we test whether the proof is available by
-   * comparing it to nullptr.
+   * Do not throw an exception, since the proof manager tests whether the proof
+   * is available by comparing it to nullptr.
    */
   if (!options().proof.proofDratExperimental) return nullptr;
 
-  fseek(d_pfFile, 0, SEEK_SET);
-  char ch;
-  while ((ch = fgetc(d_pfFile)) != EOF) {
-      Trace("drat-proof") << ch;
-  }
-  fseek(d_pfFile, 0, SEEK_END);
+  if (d_pfFile == nullptr)
+    InternalError() << "prop::CadicalSolver was not initialized correctly.\n"
+                    << "DRAT proof file is not available.";
 
-  // TODO: actually return the proof node :)
-  return nullptr;
+  SatValue status = toSatValue(d_solver->status());
+  if (status == SAT_VALUE_UNKNOWN) InternalError();
+  if (status == SAT_VALUE_TRUE) Unhandled();
+  /** else SAT_VALUE_FALSE */
+
+  CDProof cdp(d_env);
+  NodeManager* nm = NodeManager::currentNM();
+
+  char *line = nullptr;
+  size_t len = 0;
+  std::vector<std::pair<bool, SatClause>> clauses;
+  std::vector<Node> drat_steps;
+
+  fseek(d_pfFile, 0, SEEK_SET);
+  while (getline(&line, &len, d_pfFile) != -1) {
+    Assert(len > 0);
+
+    bool is_deletion = line[0] == 'd';
+    std::istringstream iss((std::string) line);
+    if (is_deletion) iss.get();  // Removes 'd'
+
+    std::string lit = "";
+    std::vector<Node> literals;
+    while(iss >> lit && lit != "0")
+      literals.push_back(nm->mkBoundVar(lit, nm->booleanType()));
+
+    Node clause = nm->mkNode(Kind::OR, literals);
+    /** TODO: I would sort of like DRAT kinds */
+    if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
+    drat_steps.push_back(clause);
+  }
+
+  Node expected = nm->mkConst(false);
+  cdp.addStep(expected, ProofRule::DRAT_REFUTATION, {}, drat_steps);
+
+  fseek(d_pfFile, 0, SEEK_END);
+  Trace("drat-proof") << *cdp.getProofFor(expected) << std::endl;
+  return cdp.getProofFor(expected);
 }
 
 std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
