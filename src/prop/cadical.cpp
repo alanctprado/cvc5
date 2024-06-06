@@ -1316,8 +1316,16 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
       literals.push_back(nm->mkBoundVar(lit, nm->booleanType()));
 
     Node clause = nm->mkNode(Kind::OR, literals);
-    /** TODO: I would sort of like DRAT kinds */
+    /** A negated clause is used to represent a deletion */
     if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
+    /**
+     * NOTE: I was thinking of perhaps having Kinds like 'Kind::DRAT_ADDITION'
+     * or 'Kind::DRAT_DELETION'. Then, we could have something like
+     *
+     * `clause = nm->mkNode(Kind::DRAT_DELETION, clause)`
+     *
+     * etc.
+     */
     drat_steps.push_back(clause);
   }
 
