@@ -14,6 +14,7 @@
  */
 
 #include "theory/bv/bv_solver_bitblast.h"
+#include <memory>
 
 #include "options/bv_options.h"
 #include "prop/sat_solver_factory.h"
@@ -223,6 +224,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     std::vector<prop::SatLiteral> unsat_assumptions;
     d_satSolver->getUnsatAssumptions(unsat_assumptions);
 
+
     Node conflict;
     // Unsat assumptions produce conflict.
     if (unsat_assumptions.size() > 0)
@@ -241,7 +243,16 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
       conflict = nm->mkAnd(assertions);
     }
-    d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
+    // TODO: change 'if' condition. Probably to check if env is not producing proofs and
+    // solver is CaDiCaL
+    if (!options().proof.proofDratExperimental)
+      d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
+    else
+    {
+      std::shared_ptr<ProofNode> sat_proof = d_satSolver->getProof();
+      Trace("drat-proof") << "DEU: " << sat_proof << "\n";
+      d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
+    }
   }
 }
 
@@ -338,18 +349,17 @@ void BVSolverBitblast::initSatSolver()
 {
   switch (options().bv.bvSatSolver)
   {
-    case options::BvSatSolverMode::CRYPTOMINISAT:
-      d_satSolver.reset(prop::SatSolverFactory::createCryptoMinisat(
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
-      break;
     default:
+//      bool captureProof = (d_env.isSatProofProducing() &&
+//          options().proof.propProofMode == options::PropProofMode::PROOF);
+      bool captureProof = options().proof.proofDratExperimental;
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
           d_env,
           statisticsRegistry(),
           d_env.getResourceManager(),
-          "theory::bv::BVSolverBitblast::"));
+          "theory::bv::BVSolverBitblast::",
+          false,
+          captureProof));
   }
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),
