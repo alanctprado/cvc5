@@ -20,6 +20,7 @@
 #include <cstdio>
 #include <deque>
 #include <sstream>
+#include <string>
 
 #include "base/check.h"
 #include "options/main_options.h"
@@ -1292,17 +1293,21 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
   CDProof cdp(d_env);
   NodeManager* nm = NodeManager::currentNM();
 
-  char *line = nullptr;
-  size_t len = 0;
   std::vector<std::pair<bool, SatClause>> clauses;
   std::vector<Node> drat_steps;
 
+  std::stringstream drat_proof;
   fseek(d_pfFile, 0, SEEK_SET);
-  while (getline(&line, &len, d_pfFile) != -1) {
-    Assert(len > 0);
+  char ch;
+  while ((ch = fgetc(d_pfFile)) != EOF) drat_proof << ch;
+  fseek(d_pfFile, 0, SEEK_END);
+
+  std::string line;
+  while (std::getline(drat_proof, line)) {
+    Assert(line.length() > 0);
 
     bool is_deletion = line[0] == 'd';
-    std::istringstream iss((std::string) line);
+    std::istringstream iss(line);
     if (is_deletion) iss.get();  // Removes 'd'
 
     std::string lit = "";
@@ -1319,7 +1324,6 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
   Node expected = nm->mkConst(false);
   cdp.addStep(expected, ProofRule::DRAT_REFUTATION, {}, drat_steps);
 
-  fseek(d_pfFile, 0, SEEK_END);
   Trace("drat-proof") << *cdp.getProofFor(expected) << std::endl;
   return cdp.getProofFor(expected);
 }
