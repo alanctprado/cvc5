@@ -1286,9 +1286,8 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
                     << "DRAT proof file is not available.";
 
   SatValue status = toSatValue(d_solver->status());
-  if (status == SAT_VALUE_UNKNOWN) InternalError();
-  if (status == SAT_VALUE_TRUE) Unhandled();
-  /** else SAT_VALUE_FALSE */
+  Assert(status == SAT_VALUE_FALSE);
+  if (status != SAT_VALUE_FALSE) return nullptr;
 
   CDProof cdp(d_env);
   NodeManager* nm = NodeManager::currentNM();
