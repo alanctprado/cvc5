@@ -15,8 +15,8 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__MINISAT__SAT_PROOF_MANAGER_H
-#define CVC5__PROP__MINISAT__SAT_PROOF_MANAGER_H
+#ifndef CVC5__PROP__MINISAT__RESOLUTION_PROOF_MANAGER_H
+#define CVC5__PROP__MINISAT__RESOLUTION_PROOF_MANAGER_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -272,13 +272,13 @@ class PropPfManager;
  *
  * This class is specific to Minisat.
  */
-class SatProofManager : protected EnvObj
+class ResolutionProofManager : protected EnvObj
 {
  public:
-  SatProofManager(Env& env,
-                  Minisat::Solver* solver,
-                  CnfStream* cnfStream,
-                  PropPfManager* ppm);
+  ResolutionProofManager(Env& env,
+                         Minisat::Solver* solver,
+                         CnfStream* cnfStream,
+                         PropPfManager* ppm);
 
   /** Marks the start of a resolution chain.
    *
@@ -648,9 +648,9 @@ class SatProofManager : protected EnvObj
   /** Manager for optimized propagations and added clauses inserted at assertion
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;
-}; /* class SatProofManager */
+}; /* class ResolutionProofManager */
 
 }  // namespace prop
 }  // namespace cvc5::internal
 
-#endif /* CVC5__SAT_PROOF_MANAGER_H */
+#endif /* CVC5__RESOLUTION_PROOF_MANAGER_H */

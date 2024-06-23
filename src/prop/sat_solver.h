@@ -32,7 +32,7 @@ namespace cvc5::internal {
 
 namespace prop {
 
-class SatProofManager;
+class ResolutionProofManager;
 class TheoryProxy;
 
 class SatSolver {

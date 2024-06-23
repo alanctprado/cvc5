@@ -34,7 +34,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/mtl/Heap.h"
 #include "prop/minisat/mtl/Vec.h"
 #include "prop/minisat/utils/Options.h"
-#include "prop/minisat/sat_proof_manager.h"
+#include "prop/minisat/resolution_proof_manager.h"
 #include "smt/env_obj.h"
 #include "theory/theory.h"
 #include "util/resource_manager.h"
@@ -59,7 +59,7 @@ class Solver : protected EnvObj
   /** The only two cvc5 entry points to the private solver data */
   friend class cvc5::internal::prop::PropEngine;
   friend class cvc5::internal::prop::TheoryProxy;
-  friend class cvc5::internal::prop::SatProofManager;
+  friend class cvc5::internal::prop::ResolutionProofManager;
 
  public:
   static CRef TCRef_Undef;
@@ -88,7 +88,7 @@ class Solver : protected EnvObj
   Var varFalse;
 
   /** The resolution proof manager */
-  std::unique_ptr<cvc5::internal::prop::SatProofManager> d_pfManager;
+  std::unique_ptr<cvc5::internal::prop::ResolutionProofManager> d_pfManager;
 
  public:
   /** Returns the current user assertion level */
@@ -139,7 +139,7 @@ public:
  Var falseVar() const { return varFalse; }
 
  /** Retrive the SAT proof manager */
- cvc5::internal::prop::SatProofManager* getProofManager();
+ cvc5::internal::prop::ResolutionProofManager* getProofManager();
 
  /** Retrive the refutation proof */
  std::shared_ptr<ProofNode> getProof();
