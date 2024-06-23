@@ -139,7 +139,7 @@ void MinisatSatSolver::initialize(context::Context* context,
   // since there is already "true" in the CNF stream. Thus the SAT proof would
   // not have True as an assumption, which can lead to issues when building its
   // proof. To prevent this problem, we track it directly here.
-  SatProofManager* spfm = d_minisat->getProofManager();
+  ResolutionProofManager* spfm = d_minisat->getProofManager();
   if (spfm)
   {
     NodeManager* nm = nodeManager();

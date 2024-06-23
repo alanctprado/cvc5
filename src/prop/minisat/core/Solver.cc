@@ -211,7 +211,7 @@ Solver::Solver(Env& env,
   if (ppm)
   {
     d_pfManager.reset(
-        new SatProofManager(env, this, proxy->getCnfStream(), ppm));
+        new ResolutionProofManager(env, this, proxy->getCnfStream(), ppm));
   }
 
   // Create the constant variables
@@ -2174,7 +2174,7 @@ inline bool Solver::withinBudget(Resource r) const
   return within_budget;
 }
 
-SatProofManager* Solver::getProofManager()
+ResolutionProofManager* Solver::getProofManager()
 {
   return isProofEnabled() ? d_pfManager.get() : nullptr;
 }
