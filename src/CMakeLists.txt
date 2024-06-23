@@ -273,8 +273,8 @@ libcvc5_add_sources(
   prop/minisat/mtl/XAlloc.h
   prop/minisat/opt_clauses_manager.cpp
   prop/minisat/opt_clauses_manager.h
-  prop/minisat/sat_proof_manager.cpp
-  prop/minisat/sat_proof_manager.h
+  prop/minisat/resolution_proof_manager.cpp
+  prop/minisat/resolution_proof_manager.h
   prop/minisat/simp/SimpSolver.cc
   prop/minisat/simp/SimpSolver.h
   prop/minisat/utils/Options.h
