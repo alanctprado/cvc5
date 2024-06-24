@@ -108,6 +108,14 @@ class CnfStream : protected EnvObj
    * @param negated whether we are asserting the node negated
    */
   void convertAndAssert(TNode node, bool removable, bool negated);
+
+  /**
+   * Returns true iff the node has an assigned literal (it might not be
+   * translated).
+   * @param node the node
+   */
+  bool hasNode(const SatLiteral& literal) const;
+
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -155,9 +163,6 @@ class CnfStream : protected EnvObj
 
   /** Retrieves map from nodes to literals. */
   const CnfStream::NodeToLiteralMap& getTranslationCache() const;
-
-  /** Retrieves map from literals to nodes. */
-  const CnfStream::LiteralToNodeMap& getNodeCache() const;
 
   /**
    * Dump dimacs of the given clauses to the given output stream.
