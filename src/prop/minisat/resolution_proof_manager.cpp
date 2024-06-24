@@ -26,13 +26,10 @@ namespace cvc5::internal {
 namespace prop {
 
 ResolutionProofManager::ResolutionProofManager(Env& env,
-                                 Minisat::Solver* solver,
-                                 CnfStream* cnfStream,
-                                 PropPfManager* ppm)
-    : EnvObj(env),
-      d_solver(solver),
-      d_cnfStream(cnfStream),
-      d_ppm(ppm),
+                                               Minisat::Solver* solver,
+                                               CnfStream* cnfStream,
+                                               PropPfManager* ppm)
+    : SatProofManager<Minisat::Solver>(env, solver, cnfStream, ppm),
       d_resChains(d_env, true, userContext()),
       // enforce unique assumptions and no symmetry. This avoids creating
       // duplicate assumption proof nodes for the premises of resolution steps,
@@ -91,7 +88,7 @@ void ResolutionProofManager::startResChain(const Minisat::Clause& start)
 void ResolutionProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  Node litNode = d_cnfStream->getNode(satLit);
   bool negated = satLit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   if (!redundant)
@@ -102,7 +99,7 @@ void ResolutionProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
     // if lit is negated then the chain resolution construction will use it as a
     // pivot occurring as is in the second clause and the node under the
     // negation in the first clause
-    d_resLinks.emplace_back(d_cnfStream->getNodeCache()[~satLit],
+    d_resLinks.emplace_back(d_cnfStream->getNode(~satLit),
                             negated ? litNode[0] : litNode,
                             !satLit.isNegated());
   }
@@ -118,7 +115,7 @@ void ResolutionProofManager::addResolutionStep(const Minisat::Clause& clause,
                                         Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Node litNode = d_cnfStream->getNodeCache()[satLit];
+  Node litNode = d_cnfStream->getNode(satLit);
   bool negated = satLit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   Node clauseNode = getClauseNode(clause);
@@ -311,12 +308,12 @@ void ResolutionProofManager::processRedundantLit(
                        << "\n"
                        << pop;
     visited.insert(lit);
-    Node litNode = d_cnfStream->getNodeCache()[lit];
+    Node litNode = d_cnfStream->getNode(lit);
     bool negated = lit.isNegated();
     Assert(!negated || litNode.getKind() == Kind::NOT);
 
     d_resLinks.emplace(d_resLinks.begin() + pos,
-                       d_cnfStream->getNodeCache()[~lit],
+                       d_cnfStream->getNode(~lit),
                        negated ? litNode[0] : litNode,
                        !negated);
     return;
@@ -359,7 +356,7 @@ void ResolutionProofManager::processRedundantLit(
   // reason, not only with ~lit, since the learned clause is built under the
   // assumption that the redundant literal is removed via the resolution with
   // the explanation of its negation
-  Node litNode = d_cnfStream->getNodeCache()[lit];
+  Node litNode = d_cnfStream->getNode(lit);
   bool negated = lit.isNegated();
   Assert(!negated || litNode.getKind() == Kind::NOT);
   d_resLinks.emplace(d_resLinks.begin() + pos,
@@ -452,10 +449,9 @@ void ResolutionProofManager::explainLit(SatLiteral lit,
     std::unordered_set<TNode> childPremises;
     explainLit(~currLit, childPremises);
     // save to resolution chain premises / arguments
-    Assert(d_cnfStream->getNodeCache().find(currLit)
-           != d_cnfStream->getNodeCache().end());
-    children.push_back(d_cnfStream->getNodeCache()[~currLit]);
-    Node currLitNode = d_cnfStream->getNodeCache()[currLit];
+    Assert(d_cnfStream->hasNode(currLit));
+    children.push_back(d_cnfStream->getNode(~currLit));
+    Node currLitNode = d_cnfStream->getNode(currLit);
     bool negated = currLit.isNegated();
     Assert(!negated || currLitNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is
@@ -465,7 +461,7 @@ void ResolutionProofManager::explainLit(SatLiteral lit,
     args.push_back(negated ? currLitNode[0] : currLitNode);
     // add child premises and the child itself
     premises.insert(childPremises.begin(), childPremises.end());
-    premises.insert(d_cnfStream->getNodeCache()[~currLit]);
+    premises.insert(d_cnfStream->getNode(~currLit));
   }
   if (TraceIsOn("sat-proof"))
   {
@@ -606,14 +602,13 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
   std::unordered_set<TNode> premises;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
-    Assert(d_cnfStream->getNodeCache().find(inConflict[i])
-           != d_cnfStream->getNodeCache().end());
+    Assert(d_cnfStream->hasNode(inConflict[i]));
     std::unordered_set<TNode> childPremises;
     explainLit(~inConflict[i], childPremises);
-    Node negatedLitNode = d_cnfStream->getNodeCache()[~inConflict[i]];
+    Node negatedLitNode = d_cnfStream->getNode(~inConflict[i]);
     // save to resolution chain premises / arguments
     children.push_back(negatedLitNode);
-    Node litNode = d_cnfStream->getNodeCache()[inConflict[i]];
+    Node litNode = d_cnfStream->getNode(inConflict[i]);
     bool negated = inConflict[i].isNegated();
     Assert(!negated || litNode.getKind() == Kind::NOT);
     // note this is the opposite of what is done in addResolutionStep. This is

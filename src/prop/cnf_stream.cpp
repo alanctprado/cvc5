@@ -217,9 +217,15 @@ SatLiteral CnfStream::newLiteral(TNode node,
   return lit;
 }
 
+bool CnfStream::hasNode(const SatLiteral& literal) const
+{
+  LiteralToNodeMap::const_iterator find = d_literalToNodeMap.find(literal);
+  return find != d_literalToNodeMap.end();
+}
+
 TNode CnfStream::getNode(const SatLiteral& literal)
 {
-  Assert(d_literalToNodeMap.find(literal) != d_literalToNodeMap.end());
+  Assert(hasNode(literal));
   Trace("cnf") << "getNode(" << literal << ")\n";
   Trace("cnf") << "getNode(" << literal << ") => "
                << d_literalToNodeMap[literal] << "\n";
@@ -229,11 +235,6 @@ TNode CnfStream::getNode(const SatLiteral& literal)
 const CnfStream::NodeToLiteralMap& CnfStream::getTranslationCache() const
 {
   return d_nodeToLiteralMap;
-}
-
-const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
-{
-  return d_literalToNodeMap;
 }
 
 void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {

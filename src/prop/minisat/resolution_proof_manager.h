@@ -28,6 +28,7 @@
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
+#include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
 
 namespace Minisat {
@@ -272,7 +273,7 @@ class PropPfManager;
  *
  * This class is specific to Minisat.
  */
-class ResolutionProofManager : protected EnvObj
+class ResolutionProofManager : private SatProofManager<Minisat::Solver>
 {
  public:
   ResolutionProofManager(Env& env,
@@ -358,7 +359,7 @@ class ResolutionProofManager : protected EnvObj
    * If there is no chain for false in d_resChains, meaning that this call was
    * made before finalizeProof, an assumption proof node is produced.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof() override;
 
   /** Register a unit clause input, converted to its node representation.  */
   void registerSatLitAssumption(Minisat::Lit lit);
@@ -558,12 +559,6 @@ class ResolutionProofManager : protected EnvObj
    */
   Node getClauseNode(const SatClause& clause);
 
-  /** The SAT solver to which we are managing proofs */
-  Minisat::Solver* d_solver;
-  /** Pointer to the underlying cnf stream. */
-  CnfStream* d_cnfStream;
-  /** The prop proof manager */
-  PropPfManager* d_ppm;
   /** Resolution steps (links) accumulator for chain resolution.
    *
    * Each tuple has a clause and the pivot for the resolution step it is
