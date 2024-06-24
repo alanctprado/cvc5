@@ -976,7 +976,7 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
-  if (d_logProofs or d_captureProof)
+  if (d_logProofs || d_captureProof)
   {
     if (d_logProofs)
     {
