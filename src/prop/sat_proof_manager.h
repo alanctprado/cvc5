@@ -27,17 +27,25 @@ namespace prop {
 class CnfStream;
 class PropPfManager;
 
+class SatProofManagerWrapper
+{
+  public:
+    virtual void registerSatAssumptions(const std::vector<Node>& assumps) = 0;
+    virtual ~SatProofManagerWrapper() = default;
+};
+
 /**
  * This class is responsible for managing the proof production of a SAT
  * solver.
  */
 
 template <class T>
-class SatProofManager : protected EnvObj
+class SatProofManager : public SatProofManagerWrapper, protected EnvObj
 {
  public:
   SatProofManager(Env& env, T* solver, CnfStream* cnfStream, PropPfManager* ppm)
   : EnvObj(env), d_solver(solver), d_cnfStream(cnfStream), d_ppm(ppm) {}
+  virtual ~SatProofManager() = default;
 
   /** Retrive the unsatisfiability proof */
   virtual std::shared_ptr<ProofNode> getProof() = 0;

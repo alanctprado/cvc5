@@ -273,7 +273,7 @@ class PropPfManager;
  *
  * This class is specific to Minisat.
  */
-class ResolutionProofManager : private SatProofManager<Minisat::Solver>
+class ResolutionProofManager : public SatProofManager<Minisat::Solver>
 {
  public:
   ResolutionProofManager(Env& env,
@@ -364,7 +364,7 @@ class ResolutionProofManager : private SatProofManager<Minisat::Solver>
   /** Register a unit clause input, converted to its node representation.  */
   void registerSatLitAssumption(Minisat::Lit lit);
   /** Register a set clause inputs. */
-  void registerSatAssumptions(const std::vector<Node>& assumps);
+  void registerSatAssumptions(const std::vector<Node>& assumps) override;
 
   /** Notify this proof manager that the SAT solver has user-context popped. */
   void notifyPop();
