@@ -35,7 +35,7 @@ class PropPfManager;
  *
  * TODO: describe a DRAT proof.
  *
- * Is this class is specific to CaDiCaL?
+ * Is this class specific to CaDiCaL?
  */
 class DratProofManager : public SatProofManager<CDCLTSatSolver>
 {
