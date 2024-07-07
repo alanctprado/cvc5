@@ -18,12 +18,11 @@
 #ifndef CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 #define CVC5__THEORY__BV__BV_SOLVER_BITBLAST_H
 
-#include <unordered_map>
-
 #include "context/cdqueue.h"
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
+#include "prop/drat_proof_manager.h"
 #include "smt/env_obj.h"
 #include "theory/bv/bitblast/node_bitblaster.h"
 #include "theory/bv/bv_solver.h"
@@ -100,6 +99,8 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<prop::CDCLTSatSolver> d_satSolver;
   /** CNF stream. */
   std::unique_ptr<prop::CnfStream> d_cnfStream;
+  /** CNF stream. */
+  prop::DratProofManager* d_pfManager;
 
   /**
    * Bit-blast queue for facts sent to this solver.
