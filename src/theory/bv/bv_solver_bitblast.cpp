@@ -250,7 +250,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
     else
     {
       std::shared_ptr<ProofNode> sat_proof = d_satSolver->getProof();
-      Trace("drat-proof") << "DEU: " << sat_proof << "\n";
+      Trace("drat-proof") << "DEU: " << *sat_proof << "\n";
       d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
     }
   }
@@ -352,14 +352,21 @@ void BVSolverBitblast::initSatSolver()
     default:
 //      bool captureProof = (d_env.isSatProofProducing() &&
 //          options().proof.propProofMode == options::PropProofMode::PROOF);
-      bool captureProof = options().proof.proofDratExperimental;
+      d_pfManager = nullptr;
+      context::CDList<Node> foo(new context::Context);
+      prop::PropPfManager ppm(d_env, d_satSolver.get(), *d_cnfStream.get(), foo);
+      if (options().proof.proofDratExperimental)
+      {
+        d_pfManager = new prop::DratProofManager(d_env, d_satSolver.get(),
+                                                 d_cnfStream.get(), &ppm);
+      }
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
           d_env,
           statisticsRegistry(),
           d_env.getResourceManager(),
+          d_pfManager,
           "theory::bv::BVSolverBitblast::",
-          false,
-          captureProof));
+          false));
   }
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),

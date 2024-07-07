@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "prop/sat_solver.h"
 #include "smt/env_obj.h"
+#include "prop/drat_proof_manager.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -108,9 +109,9 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
    */
   CadicalSolver(Env& env,
                 StatisticsRegistry& registry,
+                DratProofManager* pfManager,
                 const std::string& name = "",
-                bool logProofs = false,
-                bool captureProof = false);
+                bool logProofs = false);
 
   /**
    * Initialize SAT solver instance.
@@ -145,6 +146,9 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
   std::vector<SatLiteral> d_assumptions;
 
   unsigned d_nextVarIdx;
+
+  /** The DRAT proof manager */
+  DratProofManager* d_pfManager;
   /** Whether we are logging proofs */
   bool d_logProofs;
   /** Whether we are generating a ProofNode */

@@ -214,7 +214,7 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
                                      std::ostream* outDimacs)
 {
   std::unique_ptr<CDCLTSatSolver> csm(SatSolverFactory::createCadical(
-      d_env, statisticsRegistry(), d_env.getResourceManager(), ""));
+      d_env, statisticsRegistry(), d_env.getResourceManager()));
   NullRegistrar nreg;
   context::Context nctx;
   CnfStream csms(d_env, csm.get(), &nreg, &nctx);

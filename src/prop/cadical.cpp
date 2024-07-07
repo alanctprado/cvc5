@@ -956,17 +956,17 @@ class CadicalPropagator : public CaDiCaL::ExternalPropagator
 
 CadicalSolver::CadicalSolver(Env& env,
                              StatisticsRegistry& registry,
+                             DratProofManager* pfManager,
                              const std::string& name,
-                             bool logProofs,
-                             bool captureProof)
+                             bool logProofs)
     : EnvObj(env),
       d_solver(new CaDiCaL::Solver()),
       d_context(nullptr),
       // Note: CaDiCaL variables start with index 1 rather than 0 since negated
       //       literals are represented as the negation of the index.
       d_nextVarIdx(1),
+      d_pfManager(pfManager),
       d_logProofs(logProofs),
-      d_captureProof(captureProof),
       d_pfPath(""),
       d_pfFile(nullptr),
       d_inSatMode(false),
@@ -976,7 +976,7 @@ CadicalSolver::CadicalSolver(Env& env,
 
 void CadicalSolver::init()
 {
-  if (d_logProofs || d_captureProof)
+  if (d_logProofs || d_pfManager)
   {
     if (d_logProofs)
     {
@@ -985,7 +985,7 @@ void CadicalSolver::init()
       AlwaysAssert(d_pfFile != nullptr) << "Failed opening file " << d_pfPath
                                   << " for CaDiCaL proof logging\n";
     }
-    else if (d_captureProof)
+    else if (d_pfManager)
     {
       d_pfFile = openTmpFile();
     }
@@ -1093,6 +1093,7 @@ SatValue CadicalSolver::_solve(const std::vector<SatLiteral>& assumptions)
 
 ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
 {
+  Trace("drat-proof") << "Adding clause: " << clause << "\n";
   if (d_propagator && TraceIsOn("cadical::propagator"))
   {
     Trace("cadical::propagator") << "addClause (" << removable << "):";
@@ -1289,49 +1290,16 @@ std::shared_ptr<ProofNode> CadicalSolver::getProof()
   Assert(status == SAT_VALUE_FALSE);
   if (status != SAT_VALUE_FALSE) return nullptr;
 
-  CDProof cdp(d_env);
-  NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> drat_steps;
-
-  std::stringstream drat_proof;
+  std::string drat_proof;
   fseek(d_pfFile, 0, SEEK_SET);
   char ch;
-  while ((ch = fgetc(d_pfFile)) != EOF) drat_proof << ch;
+  while ((ch = fgetc(d_pfFile)) != EOF) drat_proof += ch;
   fseek(d_pfFile, 0, SEEK_END);
 
-  std::string line;
-  while (std::getline(drat_proof, line)) {
-    Assert(line.length() > 0);
-
-    bool is_deletion = line[0] == 'd';
-    std::istringstream iss(line);
-    if (is_deletion) iss.get();  // Removes 'd'
-
-    std::string lit = "";
-    std::vector<Node> literals;
-    while(iss >> lit && lit != "0")
-      literals.push_back(nm->mkBoundVar(lit, nm->booleanType()));
-
-    Node clause = nm->mkNode(Kind::OR, literals);
-    /** A negated clause is used to represent a deletion */
-    if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
-    /**
-     * NOTE: I was thinking of perhaps having Kinds like 'Kind::DRAT_ADDITION'
-     * or 'Kind::DRAT_DELETION'. Then, we could have something like
-     *
-     * `clause = nm->mkNode(Kind::DRAT_DELETION, clause)`
-     *
-     * etc.
-     */
-    drat_steps.push_back(clause);
-  }
-
-  Node expected = nm->mkConst(false);
-  cdp.addStep(expected, ProofRule::DRAT_REFUTATION, {}, drat_steps);
-
-  Trace("drat-proof") << *cdp.getProofFor(expected) << std::endl;
-  return cdp.getProofFor(expected);
+  d_pfManager->setProofStream(drat_proof);
+  return d_pfManager->getProof();
 }
+
 
 std::pair<ProofRule, std::vector<Node>> CadicalSolver::getProofSketch()
 {

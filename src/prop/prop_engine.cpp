@@ -95,7 +95,7 @@ PropEngine::PropEngine(Env& env, TheoryEngine* te)
         (env.isSatProofProducing()
          && options().proof.propProofMode == options::PropProofMode::SKETCH);
     d_satSolver = SatSolverFactory::createCadicalCDCLT(
-        d_env, statisticsRegistry(), env.getResourceManager(), "", logProofs);
+        d_env, statisticsRegistry(), env.getResourceManager(), nullptr, "", logProofs);
   }
 
   // CNF stream and theory proxy required pointers to each other, make the

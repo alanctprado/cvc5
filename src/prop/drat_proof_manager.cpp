@@ -14,6 +14,7 @@
  */
 
 #include "prop/drat_proof_manager.h"
+#include <sstream>
 
 namespace cvc5::internal {
 namespace prop {
@@ -33,7 +34,45 @@ DratProofManager::DratProofManager(Env& env,
 
 std::shared_ptr<ProofNode> DratProofManager::getProof()
 {
-  return nullptr;
+  CDProof cdp(d_env);
+  NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> drat_steps;
+
+  std::string line;
+  while (std::getline(d_dratProof, line)) {
+    Assert(line.length() > 0);
+
+    bool is_deletion = line[0] == 'd';
+    std::istringstream iss(line);
+    if (is_deletion) iss.get();  // Removes 'd'
+
+    std::string lit = "";
+    std::vector<Node> literals;
+    while(iss >> lit && lit != "0")
+      literals.push_back(nm->mkBoundVar(lit, nm->booleanType()));
+
+    Node clause = nm->mkNode(Kind::OR, literals);
+    /** A negated clause is used to represent a deletion */
+    if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
+    /**
+     * NOTE: I was thinking of perhaps having Kinds like 'Kind::DRAT_ADDITION'
+     * or 'Kind::DRAT_DELETION'. Then, we could have something like
+     *
+     * `clause = nm->mkNode(Kind::DRAT_DELETION, clause)`
+     *
+     * etc.
+     */
+    drat_steps.push_back(clause);
+  }
+
+  Node expected = nm->mkConst(false);
+  cdp.addStep(expected, ProofRule::DRAT_REFUTATION, {}, drat_steps);
+  return cdp.getProofFor(expected);
+}
+
+void DratProofManager::setProofStream(std::string proof)
+{
+  d_dratProof.str(proof);
 }
 
 void DratProofManager::registerSatClause(SatClause& clause)
