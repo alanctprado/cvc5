@@ -374,6 +374,7 @@ void BVSolverBitblast::initSatSolver()
                                         d_nullContext.get(),
                                         prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
+  d_pfManager->resetCnfStream(d_cnfStream.get());
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)
