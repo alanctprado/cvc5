@@ -15,6 +15,7 @@
 
 #include "prop/drat_proof_manager.h"
 #include <sstream>
+#include "prop/sat_solver_types.h"
 
 namespace cvc5::internal {
 namespace prop {
@@ -46,12 +47,16 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
     std::istringstream iss(line);
     if (is_deletion) iss.get();  // Removes 'd'
 
-    std::string lit = "";
-    std::vector<Node> literals;
-    while(iss >> lit && lit != "0")
-      literals.push_back(nm->mkBoundVar(lit, nm->booleanType()));
+    std::vector<Node> literal_nodes;
+    int cadical_lit;
+    while(iss >> cadical_lit && cadical_lit != 0)
+    {
+      SatLiteral lit(std::abs(cadical_lit), cadical_lit < 0);
+      literal_nodes.push_back(d_cnfStream->getNode(lit));
 
-    Node clause = nm->mkNode(Kind::OR, literals);
+    }
+
+    Node clause = nm->mkNode(Kind::OR, literal_nodes);
     /** A negated clause is used to represent a deletion */
     if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
     /**
@@ -73,6 +78,11 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
 void DratProofManager::setProofStream(std::string proof)
 {
   d_dratProof.str(proof);
+}
+
+void DratProofManager::resetCnfStream(CnfStream* cnfStream)
+{
+  d_cnfStream = cnfStream;
 }
 
 void DratProofManager::registerSatClause(SatClause& clause)

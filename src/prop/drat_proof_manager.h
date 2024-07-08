@@ -49,12 +49,14 @@ class DratProofManager : public SatProofManager<CDCLTSatSolver>
   std::shared_ptr<ProofNode> getProof() override;
   /** Updates the proof stream, discarding any previous contents */
   void setProofStream(std::string proof);
+  /** A little hackish? */
+  void resetCnfStream(CnfStream* cnfStream);
 
   /** Register a clause input, converted to its node representation. */
   void registerSatClause(SatClause& clause);
   /** Register a set of assumptions. */
   void registerSatLitAssumptions(const std::vector<SatLiteral>& assumps);
-
+  /** I don't remember why this is here. */
   void registerSatAssumptions(const std::vector<Node>& assumps) override;
 
  private:

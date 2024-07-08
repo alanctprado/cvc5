@@ -189,6 +189,11 @@ SatLiteral CnfStream::newLiteral(TNode node,
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
+    if (options().proof.proofDratExperimental)
+    {
+      d_literalToNodeMap.insert_safe(lit, node);
+      d_literalToNodeMap.insert_safe(~lit, node.notNode());
+    }
   }
   else
   {
