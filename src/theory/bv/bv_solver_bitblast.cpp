@@ -350,13 +350,13 @@ void BVSolverBitblast::initSatSolver()
   switch (options().bv.bvSatSolver)
   {
     default:
-//      bool captureProof = (d_env.isSatProofProducing() &&
-//          options().proof.propProofMode == options::PropProofMode::PROOF);
       d_pfManager = nullptr;
-      context::CDList<Node> foo(new context::Context);
-      prop::PropPfManager ppm(d_env, d_satSolver.get(), *d_cnfStream.get(), foo);
+//      if (options().proof.propProofMode == options::PropProofMode::PROOF &&
+//          d_env.isSatProofProducing())
       if (options().proof.proofDratExperimental)
       {
+        context::CDList<Node> foo(new context::Context);
+        prop::PropPfManager ppm(d_env, d_satSolver.get(), *d_cnfStream.get(), foo);
         d_pfManager = new prop::DratProofManager(d_env, d_satSolver.get(),
                                                  d_cnfStream.get(), &ppm);
       }
@@ -374,7 +374,7 @@ void BVSolverBitblast::initSatSolver()
                                         d_nullContext.get(),
                                         prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
-  d_pfManager->resetCnfStream(d_cnfStream.get());
+  if (d_pfManager) d_pfManager->resetCnfStream(d_cnfStream.get());
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)
