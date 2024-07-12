@@ -42,8 +42,7 @@ class DratProofManager : public SatProofManager<CDCLTSatSolver>
  public:
   DratProofManager(Env& env,
                    CDCLTSatSolver* solver,
-                   CnfStream* cnfStream,
-                   PropPfManager* ppm);
+                   CnfStream* cnfStream);
 
   /** Retrive the DRAT proof */
   std::shared_ptr<ProofNode> getProof() override;

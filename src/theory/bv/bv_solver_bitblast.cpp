@@ -351,14 +351,18 @@ void BVSolverBitblast::initSatSolver()
   {
     default:
       d_pfManager = nullptr;
-//      if (options().proof.propProofMode == options::PropProofMode::PROOF &&
-//          d_env.isSatProofProducing())
+
+      /**
+       * TODO: at some point, this condition should be changed to something
+       * like:
+       *
+       * if (options().proof.propProofMode == options::PropProofMode::PROOF &&
+       *  d_env.isSatProofProducing())
+       */
       if (options().proof.proofDratExperimental)
       {
-        context::CDList<Node> foo(new context::Context);
-        prop::PropPfManager ppm(d_env, d_satSolver.get(), *d_cnfStream.get(), foo);
         d_pfManager = new prop::DratProofManager(d_env, d_satSolver.get(),
-                                                 d_cnfStream.get(), &ppm);
+                                                 d_cnfStream.get());
       }
       d_satSolver.reset(prop::SatSolverFactory::createCadical(
           d_env,
