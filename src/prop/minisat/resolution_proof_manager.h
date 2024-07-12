@@ -643,6 +643,9 @@ class ResolutionProofManager : public SatProofManager<Minisat::Solver>
   /** Manager for optimized propagations and added clauses inserted at assertion
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;
+
+   /** NOTE: this should be moved to `SatProofManager` */
+   PropPfManager* d_ppm;
 }; /* class ResolutionProofManager */
 
 }  // namespace prop

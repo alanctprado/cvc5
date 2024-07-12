@@ -43,8 +43,8 @@ template <class T>
 class SatProofManager : public SatProofManagerWrapper, protected EnvObj
 {
  public:
-  SatProofManager(Env& env, T* solver, CnfStream* cnfStream, PropPfManager* ppm)
-  : EnvObj(env), d_solver(solver), d_cnfStream(cnfStream), d_ppm(ppm) {}
+  SatProofManager(Env& env, T* solver, CnfStream* cnfStream)
+  : EnvObj(env), d_solver(solver), d_cnfStream(cnfStream) {}
   virtual ~SatProofManager() = default;
 
   /** Retrive the unsatisfiability proof */
@@ -55,8 +55,16 @@ class SatProofManager : public SatProofManagerWrapper, protected EnvObj
   T* d_solver;
   /** Pointer to the underlying cnf stream. */
   CnfStream* d_cnfStream;
-  /** The prop proof manager */
-  PropPfManager* d_ppm;
+
+  /**
+   * TODO: currently, PropPfManager is only supported by minisat. Hence, this
+   * variable is a member of it only. It should be, at some point, here.
+   *
+   * The prop proof manager
+   *
+   * PropPfManager* d_ppm;
+   */
+
 }; /* class SatProofManager */
 
 }  // namespace prop
