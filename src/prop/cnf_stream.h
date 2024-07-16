@@ -161,9 +161,6 @@ class CnfStream : protected EnvObj
    */
   bool isNotifyFormula(TNode node) const;
 
-  /** Retrieves map from nodes to literals. */
-  const CnfStream::NodeToLiteralMap& getTranslationCache() const;
-
   /**
    * Dump dimacs of the given clauses to the given output stream.
    * We use the identifiers for literals computed by this class. All literals
@@ -205,6 +202,9 @@ class CnfStream : protected EnvObj
   void dumpDimacs(std::ostream& out,
                   const std::vector<Node>& clauses,
                   const std::vector<Node>& auxUnits);
+
+  /** Used to debug a satisfying assignment */
+  void traceSatisfyingAssignment(std::string trace) const;
 
  protected:
   /** Helper function */

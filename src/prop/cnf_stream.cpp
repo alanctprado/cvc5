@@ -232,12 +232,22 @@ TNode CnfStream::getNode(const SatLiteral& literal)
   return d_literalToNodeMap[literal];
 }
 
-const CnfStream::NodeToLiteralMap& CnfStream::getTranslationCache() const
+void CnfStream::traceSatisfyingAssignment(std::string trace) const
 {
-  return d_nodeToLiteralMap;
+  Trace(trace) << "Literal | Value | Expr\n------------------"
+               << "----------------------------------------\n";
+  for(auto const& [n, l] : d_nodeToLiteralMap)
+  {
+    if(!l.isNegated())
+    {
+      SatValue value = d_satSolver->modelValue(l);
+      Trace(trace) << "'" << l << "' " << value << " " << n << "\n";
+    }
+  }
 }
 
-void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const
+{
   outputVariables.insert(outputVariables.end(),
                          d_booleanVariables.begin(),
                          d_booleanVariables.end());

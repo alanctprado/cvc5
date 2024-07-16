@@ -209,7 +209,7 @@ void ResolutionProofManager::endResChain(Node conclusion,
     if (i > 0)
     {
       Trace("sat-proof") << "{" << posFirst << "} ["
-                         << d_cnfStream->getTranslationCache()[pivot] << "] ";
+                         << d_cnfStream->getLiteral(pivot) << "] ";
     }
     // special case for clause (or l1 ... ln) being a single literal
     // corresponding itself to a clause, which is indicated by the pivot being
@@ -220,7 +220,7 @@ void ResolutionProofManager::endResChain(Node conclusion,
     {
       for (unsigned j = 0, sizeJ = clause.getNumChildren(); j < sizeJ; ++j)
       {
-        Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause[j]];
+        Trace("sat-proof") << d_cnfStream->getLiteral(clause[j]);
         if (j < sizeJ - 1)
         {
           Trace("sat-proof") << ", ";
@@ -229,11 +229,9 @@ void ResolutionProofManager::endResChain(Node conclusion,
     }
     else
     {
-      Assert(d_cnfStream->getTranslationCache().find(clause)
-             != d_cnfStream->getTranslationCache().end())
-          << "clause node " << clause
+      Assert(d_cnfStream->hasLiteral(clause)) << "clause node " << clause
           << " treated as unit has no literal. Pivot is " << pivot << "\n";
-      Trace("sat-proof") << d_cnfStream->getTranslationCache()[clause];
+      Trace("sat-proof") << d_cnfStream->getLiteral(clause);
     }
     Trace("sat-proof") << " : ";
     if (i > 0)
@@ -441,7 +439,7 @@ void ResolutionProofManager::explainLit(SatLiteral lit,
     AlwaysAssert(size == static_cast<unsigned>(reloadedReason.size()));
     AlwaysAssert(children[0] == getClauseNode(reloadedReason));
 #endif
-    SatLiteral currLit = d_cnfStream->getTranslationCache()[toExplain[i]];
+    SatLiteral currLit = d_cnfStream->getLiteral(toExplain[i]);
     // ignore the lit we are trying to explain...
     if (currLit == lit)
     {
@@ -523,11 +521,10 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
       {
         continue;
       }
-      auto it = d_cnfStream->getTranslationCache().find(link.first);
-      if (it != d_cnfStream->getTranslationCache().end())
+      if (d_cnfStream->hasLiteral(link.first))
       {
-        Trace("sat-proof-debug2")
-            << "ResolutionProofManager::finalizeProof:  " << it->second;
+        Trace("sat-proof-debug2") << "ResolutionProofManager::finalizeProof:  "
+                                  << d_cnfStream->getLiteral(link.first);
       }
       // a refl step added due to double elim negation, ignore
       else if (link.second->getRule() == ProofRule::REFL)
@@ -541,9 +538,8 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
         Assert(link.first.getKind() == Kind::OR) << link.first;
         for (const Node& n : link.first)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof-debug2") << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(n) << " ";
         }
       }
       Trace("sat-proof-debug2") << "\n";
@@ -571,19 +567,17 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
       for (const Node& fa : fassumps)
       {
         Trace("sat-proof-debug2") << "ResolutionProofManager::finalizeProof:   - ";
-        it = d_cnfStream->getTranslationCache().find(fa);
-        if (it != d_cnfStream->getTranslationCache().end())
+        if (d_cnfStream->hasLiteral(fa))
         {
-          Trace("sat-proof-debug2") << it->second << "\n";
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(fa) << "\n";
           continue;
         }
         // then it's a clause
         Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          Trace("sat-proof-debug2") << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          Trace("sat-proof-debug2") << d_cnfStream->getLiteral(n) << " ";
         }
         Trace("sat-proof-debug2") << "\n";
       }
@@ -663,11 +657,10 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
     {
       for (const Node& fa : fassumps)
       {
-        auto it = d_cnfStream->getTranslationCache().find(fa);
-        if (it != d_cnfStream->getTranslationCache().end())
+        if (d_cnfStream->hasLiteral(fa))
         {
-          Trace("sat-proof") << "- " << it->second << "\n";
-          Trace("sat-proof") << "  - " << fa << "\n";
+          Trace("sat-proof") << "- " << d_cnfStream->getLiteral(fa) << "\n"
+                             << "  - " << fa << "\n";
           continue;
         }
         // then it's a clause
@@ -675,9 +668,8 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
         Assert(fa.getKind() == Kind::OR);
         for (const Node& n : fa)
         {
-          it = d_cnfStream->getTranslationCache().find(n);
-          Assert(it != d_cnfStream->getTranslationCache().end());
-          ss << it->second << " ";
+          Assert(d_cnfStream->hasLiteral(n));
+          ss << d_cnfStream->getLiteral(n) << " ";
         }
         Trace("sat-proof") << "- " << ss.str() << "\n";
         Trace("sat-proof") << "  - " << fa << "\n";
@@ -705,20 +697,19 @@ void ResolutionProofManager::finalizeProof(Node inConflictNode,
         continue;
       }
       // ignore non-literals
-      auto it = d_cnfStream->getTranslationCache().find(fa);
-      if (it == d_cnfStream->getTranslationCache().end())
+      if (!d_cnfStream->hasLiteral(fa))
       {
         Trace("sat-proof") << "no lit assumption " << fa << "\n";
         premises.insert(fa);
         continue;
       }
-      Trace("sat-proof") << "lit assumption (" << it->second << "), " << fa
-                         << "\n";
+      auto lit = d_cnfStream->getLiteral(fa);
+      Trace("sat-proof") << "lit assumption (" << lit << "), " << fa << "\n";
       // mark another iteration for the loop, as some resolution link may be
       // connected because of the new justifications
       expanded = true;
       std::unordered_set<TNode> childPremises;
-      explainLit(it->second, childPremises);
+      explainLit(lit, childPremises);
       // add the premises used in the justification. We know they will have
       // been as expanded as possible
       premises.insert(childPremises.begin(), childPremises.end());
