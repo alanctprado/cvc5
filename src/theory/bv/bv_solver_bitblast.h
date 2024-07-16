@@ -21,6 +21,7 @@
 #include "context/cdqueue.h"
 #include "proof/eager_proof_generator.h"
 #include "prop/cnf_stream.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/drat_proof_manager.h"
 #include "smt/env_obj.h"
@@ -95,11 +96,17 @@ class BVSolverBitblast : public BVSolver
   std::unique_ptr<BBRegistrar> d_bbRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
 
-  /** SAT solver back end (configured via options::bvSatSolver. */
+  /** SAT solver back end (configured via options::bvSatSolver). */
   std::unique_ptr<prop::CDCLTSatSolver> d_satSolver;
   /** CNF stream. */
   std::unique_ptr<prop::CnfStream> d_cnfStream;
-  /** CNF stream. */
+
+
+  /** Producing proofs? */
+  bool d_isProofProducing;
+  /** Used instead of `d_cnfStream` if we are producing proofs. */
+  std::unique_ptr<prop::ProofCnfStream> d_pfCnfStream;
+  /** DRAT Proof Manager. */
   prop::DratProofManager* d_pfManager;
 
   /**
