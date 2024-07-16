@@ -108,6 +108,12 @@ class BBRegistrar : public prop::Registrar
   std::unordered_set<TNode> d_registeredAtoms;
 };
 
+/**
+  * TODO: change the initialization of `d_isProofProducing` to something like:
+  *
+  * options().proof.propProofMode == options::PropProofMode::PROOF
+  *                               && d_env.isSatProofProducing()
+  */
 BVSolverBitblast::BVSolverBitblast(Env& env,
                                    TheoryState* s,
                                    TheoryInferenceManager& inferMgr)
@@ -115,6 +121,8 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_bitblaster(new NodeBitblaster(env, s)),
       d_bbRegistrar(new BBRegistrar(d_bitblaster.get())),
       d_nullContext(new context::Context()),
+      d_isProofProducing(options().proof.proofDratExperimental),
+      d_pfManager(nullptr),
       d_bbFacts(context()),
       d_bbInputFacts(context()),
       d_assumptions(context()),
@@ -347,38 +355,32 @@ bool BVSolverBitblast::collectModelValues(TheoryModel* m,
 
 void BVSolverBitblast::initSatSolver()
 {
-  switch (options().bv.bvSatSolver)
+  if (d_isProofProducing)
   {
-    default:
-      d_pfManager = nullptr;
-
-      /**
-       * TODO: at some point, this condition should be changed to something
-       * like:
-       *
-       * if (options().proof.propProofMode == options::PropProofMode::PROOF &&
-       *  d_env.isSatProofProducing())
-       */
-      if (options().proof.proofDratExperimental)
-      {
-        d_pfManager = new prop::DratProofManager(d_env, d_satSolver.get(),
-                                                 d_cnfStream.get());
-      }
-      d_satSolver.reset(prop::SatSolverFactory::createCadical(
-          d_env,
-          statisticsRegistry(),
-          d_env.getResourceManager(),
-          d_pfManager,
-          "theory::bv::BVSolverBitblast::",
-          false));
+    d_pfManager = new prop::DratProofManager(d_env,
+                                             d_satSolver.get(),
+                                             d_cnfStream.get());
   }
+  d_satSolver.reset(
+      prop::SatSolverFactory::createCadical(d_env,
+                                            statisticsRegistry(),
+                                            d_env.getResourceManager(),
+                                            d_pfManager,
+                                            "theory::bv::BVSolverBitblast::",
+                                            false));
   d_cnfStream.reset(new prop::CnfStream(d_env,
                                         d_satSolver.get(),
                                         d_bbRegistrar.get(),
                                         d_nullContext.get(),
-                                        prop::FormulaLitPolicy::INTERNAL,
+                                        d_isProofProducing
+                                            ? prop::FormulaLitPolicy::TRACK
+                                            : prop::FormulaLitPolicy::INTERNAL,
                                         "theory::bv::BVSolverBitblast"));
-  if (d_pfManager) d_pfManager->resetCnfStream(d_cnfStream.get());
+  if (d_isProofProducing)
+  {
+    d_pfCnfStream.reset(new prop::ProofCnfStream(d_env, *d_cnfStream, nullptr));
+    d_pfManager->resetCnfStream(d_cnfStream.get());
+  }
 }
 
 Node BVSolverBitblast::getValue(TNode node, bool initialize)
