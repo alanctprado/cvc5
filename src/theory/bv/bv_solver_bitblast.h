@@ -107,7 +107,10 @@ class BVSolverBitblast : public BVSolver
   /** Used instead of `d_cnfStream` if we are producing proofs. */
   std::unique_ptr<prop::ProofCnfStream> d_pfCnfStream;
   /** DRAT Proof Manager. */
-  prop::DratProofManager* d_pfManager;
+  std::unique_ptr<prop::DratProofManager> d_pfManager;
+  /** NOTE: I'm going crazy */
+  context::CDList<Node> d_nodeAssumptions;
+  std::unique_ptr<prop::PropPfManager> d_ppm;
 
   /**
    * Bit-blast queue for facts sent to this solver.

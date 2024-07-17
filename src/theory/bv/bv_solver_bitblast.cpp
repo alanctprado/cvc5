@@ -123,6 +123,7 @@ BVSolverBitblast::BVSolverBitblast(Env& env,
       d_nullContext(new context::Context()),
       d_isProofProducing(options().proof.proofDratExperimental),
       d_pfManager(nullptr),
+      d_nodeAssumptions(context()),
       d_bbFacts(context()),
       d_bbInputFacts(context()),
       d_assumptions(context()),
@@ -168,6 +169,8 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   {
     d_satSolver.reset(nullptr);
     d_cnfStream.reset(nullptr);
+    d_pfCnfStream.reset(nullptr);
+    d_pfManager.reset(nullptr);
     initSatSolver();
     d_resetNotify->reset();
   }
@@ -190,7 +193,11 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       {
         d_bitblaster->bbAtom(fact);
         Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
-        d_cnfStream->convertAndAssert(bb_fact, false, false);
+        if (d_isProofProducing)
+        {
+          d_pfCnfStream->convertAndAssert(bb_fact, false, false, true, d_epg.get());
+        }
+        else d_cnfStream->convertAndAssert(bb_fact, false, false);
       }
     }
     d_assertions.push_back(fact);
@@ -214,7 +221,8 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       {
         d_bitblaster->bbAtom(fact);
         Node bb_fact = d_bitblaster->getStoredBBAtom(fact);
-        d_cnfStream->ensureLiteral(bb_fact);
+        if (d_isProofProducing) d_pfCnfStream->ensureLiteral(bb_fact);
+        else d_cnfStream->ensureLiteral(bb_fact);
         lit = d_cnfStream->getLiteral(bb_fact);
       }
       d_factLiteralCache[fact] = lit;
@@ -357,15 +365,15 @@ void BVSolverBitblast::initSatSolver()
 {
   if (d_isProofProducing)
   {
-    d_pfManager = new prop::DratProofManager(d_env,
-                                             d_satSolver.get(),
-                                             d_cnfStream.get());
+    d_pfManager.reset(new prop::DratProofManager(d_env,
+                                                 d_satSolver.get(),
+                                                 d_cnfStream.get()));
   }
   d_satSolver.reset(
       prop::SatSolverFactory::createCadical(d_env,
                                             statisticsRegistry(),
                                             d_env.getResourceManager(),
-                                            d_pfManager,
+                                            d_pfManager.get(),
                                             "theory::bv::BVSolverBitblast::",
                                             false));
   d_cnfStream.reset(new prop::CnfStream(d_env,
@@ -378,7 +386,13 @@ void BVSolverBitblast::initSatSolver()
                                         "theory::bv::BVSolverBitblast"));
   if (d_isProofProducing)
   {
-    d_pfCnfStream.reset(new prop::ProofCnfStream(d_env, *d_cnfStream, nullptr));
+    d_ppm.reset(new prop::PropPfManager(d_env,
+                                        d_satSolver.get(),
+                                        *d_cnfStream,
+                                        d_nodeAssumptions));
+    d_pfCnfStream.reset(new prop::ProofCnfStream(d_env,
+                                                 *d_cnfStream,
+                                                 d_ppm.get()));
     d_pfManager->resetCnfStream(d_cnfStream.get());
   }
 }
@@ -422,11 +436,17 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
 
   if (assertFact)
   {
-    d_cnfStream->convertAndAssert(fact[0], false, false);
+    if (d_isProofProducing)
+    {
+      /** NOTE: should @param 'input' be 'true'? */
+      d_pfCnfStream->convertAndAssert(fact[0], false, false, true, d_epg.get());
+    }
+    else d_cnfStream->convertAndAssert(fact[0], false, false);
   }
   else
   {
-    d_cnfStream->ensureLiteral(fact[0]);
+    if (d_isProofProducing) d_pfCnfStream->ensureLiteral(fact[0]);
+    else d_cnfStream->ensureLiteral(fact[0]);
   }
 
   /* convertAndAssert() does not make the connection between the bit-vector
@@ -436,7 +456,12 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   for (auto atom : registeredAtoms)
   {
     Node bb_atom = d_bitblaster->getStoredBBAtom(atom);
-    d_cnfStream->convertAndAssert(atom.eqNode(bb_atom), false, false);
+    Node bb_eq = atom.eqNode(bb_atom);
+    if (d_isProofProducing)
+    {
+      d_pfCnfStream->convertAndAssert(bb_eq, false, false, true, d_epg.get());
+    }
+    else d_cnfStream->convertAndAssert(bb_eq, false, false);
   }
   // Clear cache since we only need to do this once per bit-blasted atom.
   registeredAtoms.clear();
