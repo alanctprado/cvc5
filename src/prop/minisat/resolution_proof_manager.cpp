@@ -13,7 +13,7 @@
  * Implementation of the proof manager for Minisat.
  */
 
-#include "prop/minisat/sat_proof_manager.h"
+#include "prop/minisat/resolution_proof_manager.h"
 
 #include "options/proof_options.h"
 #include "proof/proof_node_algorithm.h"
@@ -25,7 +25,7 @@
 namespace cvc5::internal {
 namespace prop {
 
-SatProofManager::SatProofManager(Env& env,
+ResolutionProofManager::ResolutionProofManager(Env& env,
                                  Minisat::Solver* solver,
                                  CnfStream* cnfStream,
                                  PropPfManager* ppm)
@@ -55,7 +55,7 @@ SatProofManager::SatProofManager(Env& env,
   ppm->d_satPm = this;
 }
 
-void SatProofManager::printClause(const Minisat::Clause& clause)
+void ResolutionProofManager::printClause(const Minisat::Clause& clause)
 {
   for (size_t i = 0, size = clause.size(); i < size; ++i)
   {
@@ -64,7 +64,7 @@ void SatProofManager::printClause(const Minisat::Clause& clause)
   }
 }
 
-Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
+Node ResolutionProofManager::getClauseNode(const Minisat::Clause& clause)
 {
   std::vector<Node> clauseNodes;
   for (size_t i = 0, size = clause.size(); i < size; ++i)
@@ -77,18 +77,18 @@ Node SatProofManager::getClauseNode(const Minisat::Clause& clause)
   return nodeManager()->mkNode(Kind::OR, clauseNodes);
 }
 
-void SatProofManager::startResChain(const Minisat::Clause& start)
+void ResolutionProofManager::startResChain(const Minisat::Clause& start)
 {
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::startResChain: ";
+    Trace("sat-proof") << "ResolutionProofManager::startResChain: ";
     printClause(start);
     Trace("sat-proof") << "\n";
   }
   d_resLinks.emplace_back(getClauseNode(start), Node::null(), true);
 }
 
-void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
+void ResolutionProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Node litNode = d_cnfStream->getNodeCache()[satLit];
@@ -96,7 +96,7 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
   Assert(!negated || litNode.getKind() == Kind::NOT);
   if (!redundant)
   {
-    Trace("sat-proof") << "SatProofManager::addResolutionStep: {"
+    Trace("sat-proof") << "ResolutionProofManager::addResolutionStep: {"
                        << satLit.isNegated() << "} [" << satLit << "] "
                        << ~satLit << "\n";
     // if lit is negated then the chain resolution construction will use it as a
@@ -108,13 +108,13 @@ void SatProofManager::addResolutionStep(Minisat::Lit lit, bool redundant)
   }
   else
   {
-    Trace("sat-proof") << "SatProofManager::addResolutionStep: redundant lit "
+    Trace("sat-proof") << "ResolutionProofManager::addResolutionStep: redundant lit "
                        << satLit << " stored\n";
     d_redundantLits.push_back(satLit);
   }
 }
 
-void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
+void ResolutionProofManager::addResolutionStep(const Minisat::Clause& clause,
                                         Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
@@ -129,31 +129,31 @@ void SatProofManager::addResolutionStep(const Minisat::Clause& clause,
   d_resLinks.emplace_back(clauseNode, negated ? litNode[0] : litNode, negated);
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::addResolutionStep: {"
+    Trace("sat-proof") << "ResolutionProofManager::addResolutionStep: {"
                        << satLit.isNegated() << "} [" << ~satLit << "] ";
     printClause(clause);
-    Trace("sat-proof") << "\nSatProofManager::addResolutionStep:\t"
+    Trace("sat-proof") << "\nResolutionProofManager::addResolutionStep:\t"
                        << clauseNode << " - lvl " << clause.level() + 1 << "\n";
   }
 }
 
-void SatProofManager::endResChain(Minisat::Lit lit)
+void ResolutionProofManager::endResChain(Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
+  Trace("sat-proof") << "ResolutionProofManager::endResChain: curr user level: "
                      << userContext()->getLevel() << "\n";
-  Trace("sat-proof") << "SatProofManager::endResChain: chain_res for "
+  Trace("sat-proof") << "ResolutionProofManager::endResChain: chain_res for "
                      << satLit;
   endResChain(d_cnfStream->getNode(satLit), {satLit});
 }
 
-void SatProofManager::endResChain(const Minisat::Clause& clause)
+void ResolutionProofManager::endResChain(const Minisat::Clause& clause)
 {
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::endResChain: curr user level: "
+    Trace("sat-proof") << "ResolutionProofManager::endResChain: curr user level: "
                        << userContext()->getLevel() << "\n";
-    Trace("sat-proof") << "SatProofManager::endResChain: chain_res for ";
+    Trace("sat-proof") << "ResolutionProofManager::endResChain: chain_res for ";
     printClause(clause);
   }
   std::set<SatLiteral> clauseLits;
@@ -164,7 +164,7 @@ void SatProofManager::endResChain(const Minisat::Clause& clause)
   endResChain(getClauseNode(clause), clauseLits, clause.level() + 1);
 }
 
-void SatProofManager::endResChain(Node conclusion,
+void ResolutionProofManager::endResChain(Node conclusion,
                                   const std::set<SatLiteral>& conclusionLits,
                                   uint32_t clauseLevel)
 {
@@ -172,7 +172,7 @@ void SatProofManager::endResChain(Node conclusion,
   LazyCDProof* cnfProof = d_ppm->getCnfProof();
   if (cnfProof->hasStep(conclusion) || cnfProof->hasGenerator(conclusion))
   {
-    Trace("sat-proof") << "SatProofManager::endResChain: cnf proof has "
+    Trace("sat-proof") << "ResolutionProofManager::endResChain: cnf proof has "
                           "step/gen for it; skip\n";
     // clearing
     d_resLinks.clear();
@@ -182,7 +182,7 @@ void SatProofManager::endResChain(Node conclusion,
   if (d_resChains.hasGenerator(conclusion))
   {
     Trace("sat-proof")
-        << "SatProofManager::endResChain: skip repeated proof of " << conclusion
+        << "ResolutionProofManager::endResChain: skip repeated proof of " << conclusion
         << "\n";
     // clearing
     d_resLinks.clear();
@@ -207,7 +207,7 @@ void SatProofManager::endResChain(Node conclusion,
     bool posFirst;
     std::tie(clause, pivot, posFirst) = d_resLinks[i];
     children.push_back(clause);
-    Trace("sat-proof") << "SatProofManager::endResChain:   ";
+    Trace("sat-proof") << "ResolutionProofManager::endResChain:   ";
     if (i > 0)
     {
       Trace("sat-proof") << "{" << posFirst << "} ["
@@ -251,7 +251,7 @@ void SatProofManager::endResChain(Node conclusion,
   // whether no-op
   if (children.size() == 1)
   {
-    Trace("sat-proof") << "SatProofManager::endResChain: no-op. The conclusion "
+    Trace("sat-proof") << "ResolutionProofManager::endResChain: no-op. The conclusion "
                        << conclusion << " is set-equal to premise "
                        << children[0] << "\n";
     return;
@@ -262,7 +262,7 @@ void SatProofManager::endResChain(Node conclusion,
     if (conclusion == child)
     {
       Trace("sat-proof")
-          << "SatProofManager::endResChain: no-op. The conclusion "
+          << "ResolutionProofManager::endResChain: no-op. The conclusion "
           << conclusion << " is equal to a premise\n";
       return;
     }
@@ -272,7 +272,7 @@ void SatProofManager::endResChain(Node conclusion,
   if (clauseLevel < userContext()->getLevel())
   {
     d_optResLevels[conclusion] = clauseLevel;
-    Trace("sat-proof") << "SatProofManager::endResChain: ..clause's lvl "
+    Trace("sat-proof") << "ResolutionProofManager::endResChain: ..clause's lvl "
                        << clauseLevel << " below curr user level "
                        << userContext()->getLevel() << "\n";
   }
@@ -289,14 +289,14 @@ void SatProofManager::endResChain(Node conclusion,
   d_resChains.addLazyStep(conclusion, &d_resChainPg);
 }
 
-void SatProofManager::processRedundantLit(
+void ResolutionProofManager::processRedundantLit(
     SatLiteral lit,
     const std::set<SatLiteral>& conclusionLits,
     std::set<SatLiteral>& visited,
     unsigned pos)
 {
   Trace("sat-proof") << push
-                     << "SatProofManager::processRedundantLit: Lit: " << lit
+                     << "ResolutionProofManager::processRedundantLit: Lit: " << lit
                      << "\n";
   if (visited.count(lit))
   {
@@ -368,10 +368,10 @@ void SatProofManager::processRedundantLit(
                      !negated);
 }
 
-void SatProofManager::explainLit(SatLiteral lit,
+void ResolutionProofManager::explainLit(SatLiteral lit,
                                  std::unordered_set<TNode>& premises)
 {
-  Trace("sat-proof") << push << "SatProofManager::explainLit: Lit: " << lit;
+  Trace("sat-proof") << push << "ResolutionProofManager::explainLit: Lit: " << lit;
   Node litNode = d_cnfStream->getNode(lit);
   Trace("sat-proof") << " [" << litNode << "]\n";
   // We don't need to explain nodes who are inputs. Note that it's *necessary*
@@ -382,7 +382,7 @@ void SatProofManager::explainLit(SatLiteral lit,
   if (d_assumptions.contains(litNode))
   {
     Trace("sat-proof")
-        << "SatProofManager::explainLit: input assumption, ABORT\n"
+        << "ResolutionProofManager::explainLit: input assumption, ABORT\n"
         << pop;
     return;
   }
@@ -394,7 +394,7 @@ void SatProofManager::explainLit(SatLiteral lit,
   // the SAT solver since they'd be rewritten to the same one
   if (d_resChainPg.hasProofFor(litNode))
   {
-    Trace("sat-proof") << "SatProofManager::explainLit: already justified "
+    Trace("sat-proof") << "ResolutionProofManager::explainLit: already justified "
                        << lit << ", ABORT\n"
                        << pop;
     return;
@@ -403,7 +403,7 @@ void SatProofManager::explainLit(SatLiteral lit,
       d_solver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
   if (reasonRef == Minisat::Solver::TCRef_Undef)
   {
-    Trace("sat-proof") << "SatProofManager::explainLit: no SAT reason\n" << pop;
+    Trace("sat-proof") << "ResolutionProofManager::explainLit: no SAT reason\n" << pop;
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_solver->ca.size())
@@ -413,7 +413,7 @@ void SatProofManager::explainLit(SatLiteral lit,
   unsigned size = reason.size();
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::explainLit: with clause: ";
+    Trace("sat-proof") << "ResolutionProofManager::explainLit: with clause: ";
     printClause(reason);
     Trace("sat-proof") << "\n";
   }
@@ -469,11 +469,11 @@ void SatProofManager::explainLit(SatLiteral lit,
   }
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << pop << "SatProofManager::explainLit: chain_res for "
+    Trace("sat-proof") << pop << "ResolutionProofManager::explainLit: chain_res for "
                        << lit << ", " << litNode << " with clauses:\n";
     for (unsigned i = 0, csize = children.size(); i < csize; ++i)
     {
-      Trace("sat-proof") << "SatProofManager::explainLit:   " << children[i];
+      Trace("sat-proof") << "ResolutionProofManager::explainLit:   " << children[i];
       if (i > 0)
       {
         Trace("sat-proof") << " [" << args[(2 * i) - 2] << ", "
@@ -486,7 +486,7 @@ void SatProofManager::explainLit(SatLiteral lit,
   // cyclic proof by aborting.
   if (premises.count(litNode))
   {
-    Trace("sat-proof") << "SatProofManager::explainLit: CYCLIC PROOF of " << lit
+    Trace("sat-proof") << "ResolutionProofManager::explainLit: CYCLIC PROOF of " << lit
                        << " [" << litNode << "], ABORT\n"
                        << pop;
     return;
@@ -503,11 +503,11 @@ void SatProofManager::explainLit(SatLiteral lit,
   d_resChains.addLazyStep(litNode, &d_resChainPg);
 }
 
-void SatProofManager::finalizeProof(Node inConflictNode,
+void ResolutionProofManager::finalizeProof(Node inConflictNode,
                                     const std::vector<SatLiteral>& inConflict)
 {
   Trace("sat-proof")
-      << "SatProofManager::finalizeProof: conflicting clause node: "
+      << "ResolutionProofManager::finalizeProof: conflicting clause node: "
       << inConflictNode << "\n";
   // nothing to do
   if (inConflictNode == d_false)
@@ -517,7 +517,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   if (TraceIsOn("sat-proof-debug2"))
   {
     Trace("sat-proof-debug2")
-        << push << "SatProofManager::finalizeProof: saved proofs in chain:\n";
+        << push << "ResolutionProofManager::finalizeProof: saved proofs in chain:\n";
     std::map<Node, std::shared_ptr<ProofNode>> links = d_resChains.getLinks();
     std::unordered_set<Node> skip;
     for (const std::pair<const Node, std::shared_ptr<ProofNode>>& link : links)
@@ -530,7 +530,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       if (it != d_cnfStream->getTranslationCache().end())
       {
         Trace("sat-proof-debug2")
-            << "SatProofManager::finalizeProof:  " << it->second;
+            << "ResolutionProofManager::finalizeProof:  " << it->second;
       }
       // a refl step added due to double elim negation, ignore
       else if (link.second->getRule() == ProofRule::REFL)
@@ -540,7 +540,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       // a clause
       else
       {
-        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:";
+        Trace("sat-proof-debug2") << "ResolutionProofManager::finalizeProof:";
         Assert(link.first.getKind() == Kind::OR) << link.first;
         for (const Node& n : link.first)
         {
@@ -551,7 +551,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       }
       Trace("sat-proof-debug2") << "\n";
       Trace("sat-proof-debug2")
-          << "SatProofManager::finalizeProof: " << link.first << "\n";
+          << "ResolutionProofManager::finalizeProof: " << link.first << "\n";
       // get resolution
       Node cur = link.first;
       std::shared_ptr<ProofNode> pfn = link.second;
@@ -573,7 +573,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       Trace("sat-proof-debug2") << push;
       for (const Node& fa : fassumps)
       {
-        Trace("sat-proof-debug2") << "SatProofManager::finalizeProof:   - ";
+        Trace("sat-proof-debug2") << "ResolutionProofManager::finalizeProof:   - ";
         it = d_cnfStream->getTranslationCache().find(fa);
         if (it != d_cnfStream->getTranslationCache().end())
         {
@@ -592,7 +592,7 @@ void SatProofManager::finalizeProof(Node inConflictNode,
       }
       Trace("sat-proof-debug2") << pop;
       Trace("sat-proof-debug2")
-          << "SatProofManager::finalizeProof:  " << *pfn.get() << "\n=======\n";
+          << "ResolutionProofManager::finalizeProof:  " << *pfn.get() << "\n=======\n";
       ;
     }
     Trace("sat-proof-debug2") << pop;
@@ -628,11 +628,11 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   }
   if (TraceIsOn("sat-proof"))
   {
-    Trace("sat-proof") << "SatProofManager::finalizeProof: chain_res for false "
+    Trace("sat-proof") << "ResolutionProofManager::finalizeProof: chain_res for false "
                           "with clauses:\n";
     for (unsigned i = 0, size = children.size(); i < size; ++i)
     {
-      Trace("sat-proof") << "SatProofManager::finalizeProof:   " << children[i];
+      Trace("sat-proof") << "ResolutionProofManager::finalizeProof:   " << children[i];
       if (i > 0)
       {
         Trace("sat-proof") << " [" << args[i - 1] << "]";
@@ -742,27 +742,27 @@ void SatProofManager::finalizeProof(Node inConflictNode,
   }
 }
 
-void SatProofManager::storeUnitConflict(Minisat::Lit inConflict)
+void ResolutionProofManager::storeUnitConflict(Minisat::Lit inConflict)
 {
   Assert(d_conflictLit == undefSatVariable);
   d_conflictLit = MinisatSatSolver::toSatLiteral(inConflict);
 }
 
-void SatProofManager::finalizeProof()
+void ResolutionProofManager::finalizeProof()
 {
   Assert(d_conflictLit != undefSatVariable);
   Trace("sat-proof")
-      << "SatProofManager::finalizeProof: conflicting (lazy) satLit: "
+      << "ResolutionProofManager::finalizeProof: conflicting (lazy) satLit: "
       << d_conflictLit << "\n";
   finalizeProof(d_cnfStream->getNode(d_conflictLit), {d_conflictLit});
   // reset since if in incremental mode this may be used again
   d_conflictLit = undefSatVariable;
 }
 
-void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
+void ResolutionProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(inConflict);
-  Trace("sat-proof") << "SatProofManager::finalizeProof: conflicting satLit: "
+  Trace("sat-proof") << "ResolutionProofManager::finalizeProof: conflicting satLit: "
                      << satLit << "\n";
   Node clauseNode = d_cnfStream->getNode(satLit);
   if (adding)
@@ -772,13 +772,13 @@ void SatProofManager::finalizeProof(Minisat::Lit inConflict, bool adding)
   finalizeProof(clauseNode, {satLit});
 }
 
-void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
+void ResolutionProofManager::finalizeProof(const Minisat::Clause& inConflict,
                                     bool adding)
 {
   if (TraceIsOn("sat-proof"))
   {
     Trace("sat-proof")
-        << "SatProofManager::finalizeProof: conflicting clause: ";
+        << "ResolutionProofManager::finalizeProof: conflicting clause: ";
     printClause(inConflict);
     Trace("sat-proof") << "\n";
   }
@@ -795,7 +795,7 @@ void SatProofManager::finalizeProof(const Minisat::Clause& inConflict,
   finalizeProof(clauseNode, clause);
 }
 
-std::shared_ptr<ProofNode> SatProofManager::getProof()
+std::shared_ptr<ProofNode> ResolutionProofManager::getProof()
 {
   std::shared_ptr<ProofNode> pfn = d_resChains.getProofFor(d_false);
   if (!pfn)
@@ -805,9 +805,9 @@ std::shared_ptr<ProofNode> SatProofManager::getProof()
   return pfn;
 }
 
-void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)
+void ResolutionProofManager::registerSatLitAssumption(Minisat::Lit lit)
 {
-  Trace("sat-proof") << "SatProofManager::registerSatLitAssumption: - "
+  Trace("sat-proof") << "ResolutionProofManager::registerSatLitAssumption: - "
                      << d_cnfStream->getNode(
                             MinisatSatSolver::toSatLiteral(lit))
                      << "\n";
@@ -815,24 +815,24 @@ void SatProofManager::registerSatLitAssumption(Minisat::Lit lit)
       d_cnfStream->getNode(MinisatSatSolver::toSatLiteral(lit)));
 }
 
-void SatProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
+void ResolutionProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
 {
   for (const Node& a : assumps)
   {
-    Trace("sat-proof") << "SatProofManager::registerSatAssumptions: - " << a
+    Trace("sat-proof") << "ResolutionProofManager::registerSatAssumptions: - " << a
                        << "\n";
     d_assumptions.insert(a);
   }
 }
 
-void SatProofManager::notifyAssumptionInsertedAtLevel(int level,
+void ResolutionProofManager::notifyAssumptionInsertedAtLevel(int level,
                                                       Node assumption)
 {
   Assert(d_assumptions.contains(assumption));
   d_assumptionLevels[level].push_back(assumption);
 }
 
-void SatProofManager::notifyPop()
+void ResolutionProofManager::notifyPop()
 {
   for (context::CDHashMap<Node, int>::const_iterator it =
            d_optResLevels.begin();
@@ -849,7 +849,7 @@ void SatProofManager::notifyPop()
   }
 }
 
-void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
+void ResolutionProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
 {
   Assert(explLevel < (userContext()->getLevel() - 1));
   Node currProp = d_ppm->getLastExplainedPropagation();
@@ -879,7 +879,7 @@ void SatProofManager::notifyCurrPropagationInsertedAtLevel(uint32_t explLevel)
   d_ppm->resetLastExplainedPropagation();
 }
 
-void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
+void ResolutionProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
                                                   uint32_t clLevel)
 {
   Trace("cnf") << "Need to save clause " << clause << " in level "
@@ -898,7 +898,7 @@ void SatProofManager::notifyClauseInsertedAtLevel(const SatClause& clause,
   notifyAssumptionInsertedAtLevel(clLevel, clauseNode);
 }
 
-Node SatProofManager::getClauseNode(const SatClause& clause)
+Node ResolutionProofManager::getClauseNode(const SatClause& clause)
 {
   std::vector<Node> clauseNodes;
   for (size_t i = 0, size = clause.size(); i < size; ++i)
