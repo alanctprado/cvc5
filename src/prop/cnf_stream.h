@@ -108,6 +108,13 @@ class CnfStream : protected EnvObj
    * @param negated whether we are asserting the node negated
    */
   void convertAndAssert(TNode node, bool removable, bool negated);
+
+  /**
+   * Returns true iff the literal is assigned to a node
+   * @param literal the literal
+   */
+  bool hasNode(const SatLiteral& literal) const;
+
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
@@ -153,12 +160,6 @@ class CnfStream : protected EnvObj
    */
   bool isNotifyFormula(TNode node) const;
 
-  /** Retrieves map from nodes to literals. */
-  const CnfStream::NodeToLiteralMap& getTranslationCache() const;
-
-  /** Retrieves map from literals to nodes. */
-  const CnfStream::LiteralToNodeMap& getNodeCache() const;
-
   /**
    * Dump dimacs of the given clauses to the given output stream.
    * We use the identifiers for literals computed by this class. All literals
@@ -200,6 +201,9 @@ class CnfStream : protected EnvObj
   void dumpDimacs(std::ostream& out,
                   const std::vector<Node>& clauses,
                   const std::vector<Node>& auxUnits);
+
+  /** Used to debug a satisfying assignment */
+  void traceSatisfyingAssignment(std::string trace) const;
 
  protected:
   /** Helper function */

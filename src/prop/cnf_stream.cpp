@@ -217,26 +217,37 @@ SatLiteral CnfStream::newLiteral(TNode node,
   return lit;
 }
 
+bool CnfStream::hasNode(const SatLiteral& literal) const
+{
+  LiteralToNodeMap::const_iterator find = d_literalToNodeMap.find(literal);
+  return find != d_literalToNodeMap.end();
+}
+
 TNode CnfStream::getNode(const SatLiteral& literal)
 {
-  Assert(d_literalToNodeMap.find(literal) != d_literalToNodeMap.end());
+  Assert(hasNode(literal));
   Trace("cnf") << "getNode(" << literal << ")\n";
   Trace("cnf") << "getNode(" << literal << ") => "
                << d_literalToNodeMap[literal] << "\n";
   return d_literalToNodeMap[literal];
 }
 
-const CnfStream::NodeToLiteralMap& CnfStream::getTranslationCache() const
+void CnfStream::traceSatisfyingAssignment(std::string trace) const
 {
-  return d_nodeToLiteralMap;
+  Trace(trace) << "Literal | Value | Expr\n------------------"
+               << "----------------------------------------\n";
+  for(auto const& [n, l] : d_nodeToLiteralMap)
+  {
+    if(!l.isNegated())
+    {
+      SatValue value = d_satSolver->modelValue(l);
+      Trace(trace) << "'" << l << "' " << value << " " << n << "\n";
+    }
+  }
 }
 
-const CnfStream::LiteralToNodeMap& CnfStream::getNodeCache() const
+void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const
 {
-  return d_literalToNodeMap;
-}
-
-void CnfStream::getBooleanVariables(std::vector<TNode>& outputVariables) const {
   outputVariables.insert(outputVariables.end(),
                          d_booleanVariables.begin(),
                          d_booleanVariables.end());
