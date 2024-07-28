@@ -52,7 +52,7 @@ ResolutionProofManager::ResolutionProofManager(Env& env,
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
   // temporary, to allow this class to be notified when new clauses are added
   // see https://github.com/cvc5/cvc5-wishues/issues/149
-  ppm->d_satPm = this;
+  ppm->d_resPm = this;
 }
 
 void ResolutionProofManager::printClause(const Minisat::Clause& clause)

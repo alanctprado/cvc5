@@ -273,7 +273,7 @@ class PropPfManager : protected EnvObj
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
   /** Temporary, pointer to SAT proof manager */
-  ResolutionProofManager* d_satPm;
+  ResolutionProofManager* d_resPm;
 }; /* class PropPfManager */
 
 }  // namespace prop

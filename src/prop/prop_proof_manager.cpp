@@ -63,7 +63,7 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
-      d_satPm(nullptr)
+      d_resPm(nullptr)
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -445,9 +445,9 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     d_lemmaClauses.insert(normClauseNode);
   }
-  if (d_satPm)
+  if (d_resPm)
   {
-    d_satPm->registerSatAssumptions({normClauseNode});
+    d_resPm->registerSatAssumptions({normClauseNode});
   }
   return normClauseNode;
 }
