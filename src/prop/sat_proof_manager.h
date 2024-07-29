@@ -27,43 +27,27 @@ namespace prop {
 class CnfStream;
 class PropPfManager;
 
-class SatProofManagerWrapper
-{
-  public:
-    virtual void registerSatAssumptions(const std::vector<Node>& assumps) = 0;
-    virtual ~SatProofManagerWrapper() = default;
-};
-
 /**
  * This class is responsible for managing the proof production of a SAT
  * solver.
  */
-
-template <class T>
-class SatProofManager : public SatProofManagerWrapper, protected EnvObj
+class SatProofManager : protected EnvObj
 {
  public:
-  SatProofManager(Env& env, T* solver, CnfStream* cnfStream)
-  : EnvObj(env), d_solver(solver), d_cnfStream(cnfStream) {}
+  SatProofManager(Env& env, CnfStream* cnfStream, PropPfManager* ppm)
+  : EnvObj(env), d_cnfStream(cnfStream), d_ppm(ppm) {}
   virtual ~SatProofManager() = default;
 
+  /** Register a set clause inputs. */
+  virtual void registerSatAssumptions(const std::vector<Node>& assumps) = 0;
   /** Retrive the unsatisfiability proof */
   virtual std::shared_ptr<ProofNode> getProof() = 0;
 
  protected:
-  /** The SAT solver to which we are managing proofs */
-  T* d_solver;
   /** Pointer to the underlying cnf stream. */
   CnfStream* d_cnfStream;
-
-  /**
-   * TODO: currently, PropPfManager is only supported by minisat. Hence, this
-   * variable is a member of it only. It should be, at some point, here.
-   *
-   * The prop proof manager
-   *
-   * PropPfManager* d_ppm;
-   */
+  /** The prop proof manager */
+  PropPfManager* d_ppm;
 
 }; /* class SatProofManager */
 

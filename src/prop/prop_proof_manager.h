@@ -36,7 +36,7 @@ class CDCLTSatSolver;
 class CnfStream;
 class DratProofManager;
 class ResolutionProofManager;
-class SatProofManagerWrapper;
+class SatProofManager;
 
 /**
  * This class is responsible for managing the proof output of PropEngine, both
@@ -49,7 +49,7 @@ class PropPfManager : protected EnvObj
 {
   friend class DratProofManager;
   friend class ResolutionProofManager;
-  friend class SatProofManagerWrapper;
+  friend class SatProofManager;
 
  public:
   /**
@@ -277,7 +277,7 @@ class PropPfManager : protected EnvObj
   /** The current propagation being processed via this class. */
   Node d_currPropagationProcessed;
   /** Temporary, pointer to SAT proof manager */
-  SatProofManagerWrapper* d_satPm;
+  SatProofManager* d_satPm;
 }; /* class PropPfManager */
 
 }  // namespace prop

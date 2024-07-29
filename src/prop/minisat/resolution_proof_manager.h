@@ -273,7 +273,7 @@ class PropPfManager;
  *
  * This class is specific to Minisat.
  */
-class ResolutionProofManager : public SatProofManager<Minisat::Solver>
+class ResolutionProofManager : public SatProofManager
 {
  public:
   ResolutionProofManager(Env& env,
@@ -595,6 +595,9 @@ class ResolutionProofManager : public SatProofManager<Minisat::Solver>
   Node d_true;
   Node d_false;
 
+  /** The SAT solver to which we are managing proofs */
+  Minisat::Solver* d_solver;
+
   /** All clauses added to the SAT solver, kept in a context-dependent manner.
    */
   context::CDHashSet<Node> d_assumptions;
@@ -644,8 +647,6 @@ class ResolutionProofManager : public SatProofManager<Minisat::Solver>
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;
 
-   /** NOTE: this should be moved to `SatProofManager` */
-   PropPfManager* d_ppm;
 }; /* class ResolutionProofManager */
 
 }  // namespace prop

@@ -29,7 +29,7 @@ ResolutionProofManager::ResolutionProofManager(Env& env,
                                                Minisat::Solver* solver,
                                                CnfStream* cnfStream,
                                                PropPfManager* ppm)
-    : SatProofManager<Minisat::Solver>(env, solver, cnfStream),
+    : SatProofManager(env, cnfStream, ppm),
       d_resChains(d_env, true, userContext()),
       // enforce unique assumptions and no symmetry. This avoids creating
       // duplicate assumption proof nodes for the premises of resolution steps,
@@ -38,12 +38,12 @@ ResolutionProofManager::ResolutionProofManager(Env& env,
       // post-processing). Symmetry we can disable because there is no equality
       // reasoning performed here
       d_resChainPg(d_env, userContext(), true, false),
+      d_solver(solver),
       d_assumptions(userContext()),
       d_conflictLit(undefSatVariable),
       d_optResLevels(userContext()),
       d_optResManager(userContext(), &d_resChains, d_optResProofs),
-      d_optClausesManager(userContext(), ppm->getCnfProof(), d_optClausesPfs),
-      d_ppm(ppm)
+      d_optClausesManager(userContext(), ppm->getCnfProof(), d_optClausesPfs)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
