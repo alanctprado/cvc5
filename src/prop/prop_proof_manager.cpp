@@ -63,7 +63,7 @@ PropPfManager::PropPfManager(Env& env,
       d_assumptions(assumptions),
       d_inputClauses(userContext()),
       d_lemmaClauses(userContext()),
-      d_resPm(nullptr)
+      d_satPm(nullptr)
 {
   // add trivial assumption. This is so that we can check the that the prop
   // engine's proof is closed, as the SAT solver's refutation proof may use True
@@ -214,7 +214,7 @@ bool PropPfManager::reproveUnsatCore(const std::unordered_set<Node>& cset,
                                      std::ostream* outDimacs)
 {
   std::unique_ptr<CDCLTSatSolver> csm(SatSolverFactory::createCadical(
-      d_env, statisticsRegistry(), d_env.getResourceManager(), ""));
+      d_env, statisticsRegistry(), d_env.getResourceManager()));
   NullRegistrar nreg;
   context::Context nctx;
   CnfStream csms(d_env, csm.get(), &nreg, &nctx);
@@ -327,7 +327,8 @@ std::vector<std::shared_ptr<ProofNode>> PropPfManager::getProofLeaves(
   for (const std::shared_ptr<ProofNode>& pf : pfs)
   {
     Node proven = pf->getResult();
-    if (std::find(satLeaves.begin(), satLeaves.end(), proven) != satLeaves.end())
+    if (std::find(satLeaves.begin(), satLeaves.end(), proven) !=
+        satLeaves.end())
     {
       usedPfs.push_back(pf);
     }
@@ -445,9 +446,9 @@ Node PropPfManager::normalizeAndRegister(TNode clauseNode,
   {
     d_lemmaClauses.insert(normClauseNode);
   }
-  if (d_resPm)
+  if (d_satPm)
   {
-    d_resPm->registerSatAssumptions({normClauseNode});
+    d_satPm->registerSatAssumptions({normClauseNode});
   }
   return normClauseNode;
 }

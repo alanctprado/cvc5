@@ -28,6 +28,7 @@
 #include "prop/minisat/core/SolverTypes.h"
 #include "prop/minisat/opt_clauses_manager.h"
 #include "prop/sat_solver_types.h"
+#include "prop/sat_proof_manager.h"
 #include "smt/env_obj.h"
 
 namespace Minisat {
@@ -36,9 +37,6 @@ class Solver;
 
 namespace cvc5::internal {
 namespace prop {
-
-class CnfStream;
-class PropPfManager;
 
 /**
  * This class is responsible for managing the proof production of the SAT
@@ -272,15 +270,16 @@ class PropPfManager;
  *
  * This class is specific to Minisat.
  */
-class ResolutionProofManager : protected EnvObj
+class ResolutionProofManager : public SatProofManager
 {
  public:
   ResolutionProofManager(Env& env,
-                  Minisat::Solver* solver,
-                  CnfStream* cnfStream,
-                  PropPfManager* ppm);
+                         Minisat::Solver* solver,
+                         CnfStream* cnfStream,
+                         PropPfManager* ppm);
 
-  /** Marks the start of a resolution chain.
+  /**
+   * Marks the start of a resolution chain.
    *
    * This call is followed by *at least one* call to addResolution step and one
    * call to endResChain.
@@ -292,7 +291,9 @@ class ResolutionProofManager : protected EnvObj
    * clause in a resolution chain.
    */
   void startResChain(const Minisat::Clause& start);
-  /** Adds a resolution step with a clause
+
+  /**
+   * Adds a resolution step with a clause.
    *
    * There must have been a call to startResChain before any call to
    * addResolution step. After following calls to addResolution step there is
@@ -306,22 +307,26 @@ class ResolutionProofManager : protected EnvObj
    * resolution step
    */
   void addResolutionStep(const Minisat::Clause& clause, Minisat::Lit lit);
-  /** Adds a resolution step with a unit clause
+
+  /**
+   * Adds a resolution step with a unit clause.
    *
    * The resolution step is added to d_resLinks such that lit, at the node
    * level, is the pivot and and the unit clause is ~lit, at the node level.
    *
-   * If the literal is marked as redundant, then a step is *not* is added to
-   * d_resLinks. It is rather saved to d_redundandLits, whose components we will
-   * be handled in a special manner when the resolution chain is finished. This
-   * is because the steps corresponding to the removal of redundant literals
-   * have to be done in a specific order. See processRedundantLits below.
+   * If the literal is marked as redundant, then the step is *not* added to
+   * d_resLinks. It is rather saved to d_redundandLits, whose components will be
+   * handled in a special manner when the resolution chain is finished. This is
+   * because the steps corresponding to the removal of redundant literals have
+   * to be done in a specific order. See processRedundantLits below.
    *
    * @param lit the literal being resolved against
    * @param redundant whether lit is redundant
    */
   void addResolutionStep(Minisat::Lit lit, bool redundant = false);
-  /** Ends resolution chain concluding a unit clause
+
+  /**
+   * Ends resolution chain concluding a unit clause.
    *
    * This call must have been preceded by one call to startResChain and at least
    * one call to addResolutionStep.
@@ -330,9 +335,12 @@ class ResolutionProofManager : protected EnvObj
    * described further below, which actually does the necessary processing.
    */
   void endResChain(Minisat::Lit lit);
+
   /** Ends resolution chain concluding a clause */
   void endResChain(const Minisat::Clause& clause);
-  /** Build refutation proof starting from conflict clause
+
+  /**
+   * Build refutation proof starting from conflict clause.
    *
    * This method (or its variations) is only called when the SAT solver has
    * reached an unsatisfiable state.
@@ -343,59 +351,71 @@ class ResolutionProofManager : protected EnvObj
    * @param adding whether the conflict is coming from a freshly added clause
    */
   void finalizeProof(const Minisat::Clause& inConflict, bool adding = false);
-  /** Build refutation proof starting from conflict unit clause
+
+  /**
+   * Build refutation proof starting from conflict unit clause.
    *
    * @param adding whether the conflict is coming from a freshly added clause
    */
   void finalizeProof(Minisat::Lit inConflict, bool adding = false);
+
   /** As above, but uses the unit conflict clause saved in d_conflictLit. */
   void finalizeProof();
+
   /** Set the unit conflict clause d_conflictLit. */
   void storeUnitConflict(Minisat::Lit inConflict);
 
-  /** Retrive the refutation proof
+  /**
+   * Retrive the refutation proof.
    *
    * If there is no chain for false in d_resChains, meaning that this call was
    * made before finalizeProof, an assumption proof node is produced.
    */
-  std::shared_ptr<ProofNode> getProof();
+  std::shared_ptr<ProofNode> getProof() override;
 
   /** Register a unit clause input, converted to its node representation.  */
   void registerSatLitAssumption(Minisat::Lit lit);
+
   /** Register a set clause inputs. */
-  void registerSatAssumptions(const std::vector<Node>& assumps);
+  void registerSatAssumptions(const std::vector<Node>& assumps) override;
 
   /** Notify this proof manager that the SAT solver has user-context popped. */
   void notifyPop();
 
-  /** Notify this proof manager that a SAT assumption has had its level
-   * optmized. */
+  /**
+   * Notify this proof manager that a SAT assumption has had its level
+   * optmized.
+   */
   void notifyAssumptionInsertedAtLevel(int level, Node assumption);
 
-  /** Notify that current propagation inserted at lower level than current.
+  /**
+   * Notify that current propagation inserted at lower level than current.
    *
    * The proof of the current propagation (d_currPropagationProcessed) will be
    * saved in d_optClausesPfs, so that it is not potentially lost when the user
    * context is popped.
    */
   void notifyCurrPropagationInsertedAtLevel(uint32_t explLevel);
-  /** Notify that added clause was inserted at lower level than current.
+
+  /**
+   * Notify that added clause was inserted at lower level than current.
    *
    * As above, the proof of this clause is saved in  d_optClausesPfs.
    */
   void notifyClauseInsertedAtLevel(const SatClause& clause, uint32_t clLevel);
 
  private:
-  /** Ends resolution chain concluding clause
+  /**
+   * Ends resolution chain concluding clause.
    *
    * This method builds the proof of conclusion from the resolution chain
    * currently saved in d_resLinks.
    *
-   * First each saved redundant literals in d_redundantLits is processed via
+   * First, each saved redundant literal in d_redundantLits is processed via
    * processRedundantLit. The literals in the resolution chain's conclusion are
-   * used to verifynig which literals in the computed explanations are
-   * redundant, i.e., don't occur in conclusionLits. The nessary resolution
-   * steps will be added to d_resLinks.
+   * used to verify which literals in the computed explanations are redundant,
+   * i.e., don't occur in conclusionLits. The nessary resolution steps will be
+   * added to d_resLinks.
    *
    * The proof to be built will be a CHAIN_RESOLUTION step, whose children and
    * arguments will be retrieved from traversing d_resLinks. Consider the
@@ -437,15 +457,16 @@ class ResolutionProofManager : protected EnvObj
                    const std::set<SatLiteral>& conclusionLits,
                    uint32_t clauseLevel = -1);
 
-  /** Explain redundant literal and generate corresponding resolution steps
+  /**
+   * Explain redundant literal and generate corresponding resolution steps.
    *
    * If the redundant literal has a reason, we add a resolution step with that
    * clause, otherwise with the negation of the redundant literal as the unit
-   * clause. The redundant literal is the resolvent in both cases.  The steps
-   * are always added as the *first* link after last resolution step added
-   * *before* processing redundant literals began, i.e., at d_resLinks.begin() +
-   * pos. This is to guarantee that the links are in the correct order for the
-   * chain resolution, see below.
+   * clause. The redundant literal is the resolvent in both cases. The steps are
+   * always added as the *first* link after last resolution step added *before*
+   * processing redundant literals began, i.e., at d_resLinks.begin() + pos.
+   * This is to guarantee that the links are in the correct order for the chain
+   * resolution, see below.
    *
    * If the reason contains literals that do not occur in conclusionLits, they
    * are redundant and recursively processed by this method. This recursive
@@ -478,7 +499,9 @@ class ResolutionProofManager : protected EnvObj
                            const std::set<SatLiteral>& conclusionLits,
                            std::set<SatLiteral>& visited,
                            unsigned pos);
-  /** Explain literal if it is propagated in the SAT solver
+
+  /**
+   * Explain literal if it is propagated in the SAT solver.
    *
    * If a literal is propagated, i.e., it has a reason in the SAT solver, that
    * clause is retrieved. This method is then called recursively on the negation
@@ -523,18 +546,19 @@ class ResolutionProofManager : protected EnvObj
    */
   void explainLit(prop::SatLiteral lit, std::unordered_set<TNode>& premises);
 
-  /** Build refutation proof starting from conflict clause
+  /**
+   * Build refutation proof starting from conflict clause.
    *
    * Given a conflict clause, this method handles case (3) described in the
    * preamble. Each of the literals in the conflict clause is either
    * explainable, the result of a previously saved resolution chain, or an
    * input.
    *
-   * First, explainLit is called recursively on the negated literals from
-   * the conflict clause.
+   * First, explainLit is called recursively on the negated literals from the
+   * conflict clause.
    *
-   * Second, a CHAIN_RESOLUTION proof step is added between
-   * the conflict clause and its negated literals, concluding false.
+   * Second, a CHAIN_RESOLUTION proof step is added between the conflict clause
+   * and its negated literals, concluding false.
    *
    * Third, until a fix point, the refutation proof is connected, by calling
    * d_resChain.getProofFor(d_false), its free assumptions are determined and,
@@ -550,21 +574,25 @@ class ResolutionProofManager : protected EnvObj
    */
   void finalizeProof(Node inConflictNode,
                      const std::vector<SatLiteral>& inConflict);
-  /** Gets node equivalent to SAT clause.
+
+  /**
+   * Gets node equivalent to SAT clause.
    *
    * To avoid generating different nodes for the same clause, modulo ordering,
    * an invariant assumed throughout this class, the OR node generated by this
    * method always has its children ordered.
    */
   Node getClauseNode(const SatClause& clause);
+  Node getClauseNode(const Minisat::Clause& clause);
+
+  /** Prints clause, as a sequence of literals, in the "sat-proof" trace. */
+  void printClause(const Minisat::Clause& clause);
 
   /** The SAT solver to which we are managing proofs */
   Minisat::Solver* d_solver;
-  /** Pointer to the underlying cnf stream. */
-  CnfStream* d_cnfStream;
-  /** The prop proof manager */
-  PropPfManager* d_ppm;
-  /** Resolution steps (links) accumulator for chain resolution.
+
+  /**
+   * Resolution steps (links) accumulator for chain resolution.
    *
    * Each tuple has a clause and the pivot for the resolution step it is
    * involved on, as well as whether the pivot occurs positively/negatively or
@@ -574,12 +602,15 @@ class ResolutionProofManager : protected EnvObj
    * (positively) in this link. The first link has a null pivot. Links are kept
    * at the node level.
    *
-   * This accumulator is reset after each chain resolution. */
+   * This accumulator is reset after each chain resolution.
+   */
   std::vector<std::tuple<Node, Node, bool>> d_resLinks;
 
-  /** Redundant literals removed from the resolution chain's conclusion.
+  /**
+   * Redundant literals removed from the resolution chain's conclusion.
    *
-   * This accumulator is reset after each chain resolution. */
+   * This accumulator is reset after each chain resolution.
+   */
   std::vector<SatLiteral> d_redundantLits;
 
   /**
@@ -600,54 +631,60 @@ class ResolutionProofManager : protected EnvObj
   Node d_true;
   Node d_false;
 
-  /** All clauses added to the SAT solver, kept in a context-dependent manner.
+  /**
+   * All clauses added to the SAT solver, kept in a context-dependent manner.
    */
   context::CDHashSet<Node> d_assumptions;
+
   /**
    * A placeholder that may be used to store the literal with the final
    * conflict.
    */
   SatLiteral d_conflictLit;
-  /** Gets node equivalent to clause.
-   *
-   * To avoid generating different nodes for the same clause, modulo ordering,
-   * an invariant assumed throughout this class, the OR node generated by this
-   * method always has its children ordered.
-   */
-  Node getClauseNode(const Minisat::Clause& clause);
-  /** Prints clause, as a sequence of literals, in the "sat-proof" trace. */
-  void printClause(const Minisat::Clause& clause);
 
   /** The user context */
   context::UserContext* d_userContext;
 
-  /** User-context dependent map from resolution conclusions to their assertion
-      level. */
+  /**
+   * User-context dependent map from resolution conclusions to their assertion
+   * level.
+   */
   context::CDHashMap<Node, int> d_optResLevels;
-  /** Maps assertion level to proof nodes.
+
+  /**
+   * Maps assertion level to proof nodes.
    *
    * This map is used by d_optResManager to update the internal proof of this
    * manager when the context pops.
    */
+
   std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optResProofs;
-  /** Maps assertion level to assumptions
+  /**
+   * Maps assertion level to assumptions
    *
    * As above, used by d_optResManager to update the assumption set as the
    * context pops, so that we track the correct current SAT assumptions.
    */
   std::map<int, std::vector<Node>> d_assumptionLevels;
-  /** Manager for optimized resolution conclusions inserted at assertion levels
-   * below the current user level. */
+
+  /**
+   * Manager for optimized resolution conclusions inserted at assertion levels
+   * below the current user level.
+   */
+
   OptimizedClausesManager d_optResManager;
-  /** User-context-dependent map assertion level to proof nodes.
+  /**
+   * User-context-dependent map assertion level to proof nodes.
    *
    * This map is used to update the internal proof of this class when the
    * context pops.
    */
   std::map<int, std::vector<std::shared_ptr<ProofNode>>> d_optClausesPfs;
+
   /** Manager for optimized propagations and added clauses inserted at assertion
    * levels below the current user level. */
   OptimizedClausesManager d_optClausesManager;
+
 }; /* class ResolutionProofManager */
 
 }  // namespace prop

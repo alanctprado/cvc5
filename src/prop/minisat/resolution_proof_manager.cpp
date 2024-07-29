@@ -26,13 +26,11 @@ namespace cvc5::internal {
 namespace prop {
 
 ResolutionProofManager::ResolutionProofManager(Env& env,
-                                 Minisat::Solver* solver,
-                                 CnfStream* cnfStream,
-                                 PropPfManager* ppm)
-    : EnvObj(env),
+                                               Minisat::Solver* solver,
+                                               CnfStream* cnfStream,
+                                               PropPfManager* ppm)
+    : SatProofManager(env, cnfStream, ppm),
       d_solver(solver),
-      d_cnfStream(cnfStream),
-      d_ppm(ppm),
       d_resChains(d_env, true, userContext()),
       // enforce unique assumptions and no symmetry. This avoids creating
       // duplicate assumption proof nodes for the premises of resolution steps,
@@ -52,7 +50,7 @@ ResolutionProofManager::ResolutionProofManager(Env& env,
   d_optResManager.trackNodeHashSet(&d_assumptions, &d_assumptionLevels);
   // temporary, to allow this class to be notified when new clauses are added
   // see https://github.com/cvc5/cvc5-wishues/issues/149
-  ppm->d_resPm = this;
+  ppm->d_satPm = this;
 }
 
 void ResolutionProofManager::printClause(const Minisat::Clause& clause)
