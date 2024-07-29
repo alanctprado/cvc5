@@ -90,8 +90,8 @@ Minisat::lbool MinisatSatSolver::toMinisatlbool(SatValue val)
   return false;
   }*/
 
-void MinisatSatSolver::toMinisatClause(SatClause& clause,
-                                           Minisat::vec<Minisat::Lit>& minisat_clause) {
+void MinisatSatSolver::toMinisatClause(const SatClause& clause,
+                                       Minisat::vec<Minisat::Lit>& minisat_clause) {
   for (unsigned i = 0; i < clause.size(); ++i) {
     minisat_clause.push(toMinisatLit(clause[i]));
   }
@@ -99,7 +99,7 @@ void MinisatSatSolver::toMinisatClause(SatClause& clause,
 }
 
 void MinisatSatSolver::toSatClause(const Minisat::Clause& clause,
-                                       SatClause& sat_clause) {
+                                   SatClause& sat_clause) {
   for (int i = 0; i < clause.size(); ++i) {
     sat_clause.push_back(toSatLiteral(clause[i]));
   }
@@ -170,7 +170,7 @@ void MinisatSatSolver::setupOptions() {
   d_minisat->restart_inc = options().prop.satRestartInc;
 }
 
-ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
+ClauseId MinisatSatSolver::addClause(const SatClause& clause, bool removable)
 {
   Minisat::vec<Minisat::Lit> minisat_clause;
   toMinisatClause(clause, minisat_clause);
@@ -185,6 +185,13 @@ ClauseId MinisatSatSolver::addClause(SatClause& clause, bool removable)
   Assert(!options().smt.produceUnsatCores || options().smt.produceProofs
          || clause_id != ClauseIdError);
   return clause_id;
+}
+
+ClauseId MinisatSatSolver::addXorClause(const SatClause& clause,
+                                        bool rhs,
+                                        bool removable)
+{
+  Unreachable() << "Minisat does not support native XOR reasoning";
 }
 
 SatVariable MinisatSatSolver::newVar(bool isTheoryAtom, bool canErase)

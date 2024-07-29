@@ -110,7 +110,7 @@ void CryptoMinisatSolver::setMaxTime()
   }
 }
 
-ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
+ClauseId CryptoMinisatSolver::addXorClause(const SatClause& clause,
                                            bool rhs,
                                            bool removable)
 {
@@ -135,7 +135,8 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
   return ClauseIdError;
 }
 
-ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
+ClauseId CryptoMinisatSolver::addClause(const SatClause& clause, bool removable)
+{
   Trace("sat::cryptominisat") << "Add clause " << clause <<"\n";
 
   if (!d_okay) {
