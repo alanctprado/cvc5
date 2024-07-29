@@ -23,7 +23,8 @@ namespace prop {
 DratProofManager::DratProofManager(Env& env,
                                    CDCLTSatSolver* solver,
                                    CnfStream* cnfStream)
-    : SatProofManager<CDCLTSatSolver>(env, solver, cnfStream)
+    : SatProofManager(env, cnfStream, nullptr),
+      d_solver(solver)
 {
   d_true = nodeManager()->mkConst(true);
   d_false = nodeManager()->mkConst(false);
@@ -91,7 +92,7 @@ void DratProofManager::registerSatLitAssumptions(const std::vector<SatLiteral>& 
   d_assumptions.insert(d_assumptions.end(), a.begin(), a.end());
 }
 
-void DratProofManager::registerSatAssumptions(const std::vector<Node>& assumps)
+void DratProofManager::registerSatAssumptions(const std::vector<Node>& a)
 {
   return;
 }

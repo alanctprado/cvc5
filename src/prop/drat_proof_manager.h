@@ -37,7 +37,7 @@ class PropPfManager;
  *
  * Is this class specific to CaDiCaL?
  */
-class DratProofManager : public SatProofManager<CDCLTSatSolver>
+class DratProofManager : public SatProofManager
 {
  public:
   DratProofManager(Env& env,
@@ -55,7 +55,7 @@ class DratProofManager : public SatProofManager<CDCLTSatSolver>
   void registerSatClause(SatClause& clause);
   /** Register a set of assumptions. */
   void registerSatLitAssumptions(const std::vector<SatLiteral>& assumps);
-  /** I don't remember why this is here. */
+  /** Register a set of assumptions. */
   void registerSatAssumptions(const std::vector<Node>& assumps) override;
 
  private:
@@ -63,11 +63,15 @@ class DratProofManager : public SatProofManager<CDCLTSatSolver>
   Node d_true;
   Node d_false;
 
+  /** The SAT solver to which we are managing proofs */
+  CDCLTSatSolver* d_solver;
+
   /**
    * Stores the current set of clauses provided to the solver via solve(). Used
    * to generate the antecedents of a proof.
    */
   std::vector<SatLiteral> d_assumptions;
+
   /**
    * Stores the current set of clauses provided to the solver via addClause().
    * Used to generate the antecedents of a proof.
