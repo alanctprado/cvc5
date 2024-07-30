@@ -638,5 +638,31 @@ void CadicalPropagator::renotify_fixed()
 
 void CadicalPropagator::in_search(bool flag) { d_in_search = flag; }
 
+void CadicalPropagator::theory_propagate()
+{
+  SatClause propagated_lits;
+  d_proxy->theoryPropagate(propagated_lits);
+  Trace("cadical::propagator")
+      << "new propagations: " << propagated_lits.size() << std::endl;
+
+  for (const auto& lit : propagated_lits)
+  {
+    Trace("cadical::propagator") << "new propagation: " << lit << std::endl;
+    d_propagations.push_back(lit);
+  }
+}
+
+int CadicalPropagator::next_propagation()
+{
+  if (d_propagations.empty())
+  {
+    return 0;
+  }
+  SatLiteral next = d_propagations.front();
+  d_propagations.pop_front();
+  Trace("cadical::propagator") << "propagate: " << next << std::endl;
+  return toCadicalLit(next);
+}
+
 }  // namespace prop
 }  // namespace cvc5::internal
