@@ -17,19 +17,17 @@
 
 #include "cvc5_private.h"
 
-#ifndef CVC5__PROP__CADICAL_H
-#define CVC5__PROP__CADICAL_H
+#ifndef CVC5__PROP__CADICAL__CADICAL_H
+#define CVC5__PROP__CADICAL__CADICAL_H
 
 #include <cadical.hpp>
 
-#include "context/cdhashset.h"
+#include "prop/cadical/cadical_propagator.h"
+#include "prop/cadical/cadical_utils.h"
 #include "prop/sat_solver.h"
-#include "smt/env_obj.h"
 
 namespace cvc5::internal {
 namespace prop {
-
-class CadicalPropagator;
 
 class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 {
@@ -173,4 +171,4 @@ class CadicalSolver : public CDCLTSatSolver, protected EnvObj
 }  // namespace prop
 }  // namespace cvc5::internal
 
-#endif  // CVC5__PROP__CADICAL_H
+#endif  // CVC5__PROP__CADICAL__CADICAL_H
