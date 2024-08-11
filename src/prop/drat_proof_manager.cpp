@@ -50,7 +50,6 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
     {
       SatLiteral lit(std::abs(cadical_lit), cadical_lit < 0);
       literal_nodes.push_back(d_cnfStream->getNode(lit));
-
     }
 
     Node clause = nm->mkNode(Kind::OR, literal_nodes);
@@ -68,7 +67,12 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
   }
 
   Node expected = nm->mkConst(false);
-  cdp.addStep(expected, ProofRule::DRAT_REFUTATION, {}, drat_steps);
+  Node assumptions = nm->mkNode(Kind::SEXPR, d_assumptions);
+  Node input_formula = nm->mkNode(Kind::SEXPR, d_clauses);
+  cdp.addStep(expected,
+              ProofRule::DRAT_REFUTATION,
+              drat_steps,
+              {assumptions, input_formula});
   return cdp.getProofFor(expected);
 }
 
@@ -84,17 +88,27 @@ void DratProofManager::resetCnfStream(CnfStream* cnfStream)
 
 void DratProofManager::registerSatClause(SatClause& clause)
 {
-  d_clauses.emplace_back(clause);
+  std::vector<Node> literal_nodes;
+  for (SatLiteral lit : clause)
+  {
+    literal_nodes.push_back(d_cnfStream->getNode(lit));
+  }
+  Node clause_node = NodeManager::currentNM()->mkNode(Kind::OR, literal_nodes);
+  d_clauses.emplace_back(clause_node);
 }
 
 void DratProofManager::registerSatLitAssumptions(const std::vector<SatLiteral>& a)
 {
-  d_assumptions.insert(d_assumptions.end(), a.begin(), a.end());
+  d_assumptions.clear();
+  for (SatLiteral lit : a)
+  {
+    d_assumptions.push_back(d_cnfStream->getNode(lit));
+  }
 }
 
 void DratProofManager::registerSatAssumptions(const std::vector<Node>& a)
 {
-  return;
+  Unimplemented();
 }
 
 }  // namespace prop

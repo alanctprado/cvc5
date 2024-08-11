@@ -1121,6 +1121,7 @@ ClauseId CadicalSolver::addClause(SatClause& clause, bool removable)
     }
     d_solver->add(0);
   }
+  d_pfManager->registerSatClause(clause);
   ++d_statistics.d_numClauses;
   return ClauseIdError;
 }
@@ -1155,6 +1156,7 @@ SatValue CadicalSolver::solve(long unsigned int&)
 
 SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
 {
+  d_pfManager->registerSatLitAssumptions(assumptions);
   return _solve(assumptions);
 }
 
