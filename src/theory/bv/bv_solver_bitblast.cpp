@@ -169,6 +169,7 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
   {
     d_satSolver.reset(nullptr);
     d_cnfStream.reset(nullptr);
+    d_ppm.reset(nullptr);
     d_pfCnfStream.reset(nullptr);
     d_pfManager.reset(nullptr);
     initSatSolver();
@@ -259,8 +260,8 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
       conflict = nm->mkAnd(assertions);
     }
-    // TODO: change 'if' condition. Probably to check if env is not producing proofs and
-    // solver is CaDiCaL
+    // TODO: change 'if' condition. Probably to check if env is not producing
+    // proofs and solver is CaDiCaL
     if (!options().proof.proofDratExperimental)
       d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
     else
