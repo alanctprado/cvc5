@@ -206,6 +206,16 @@ BitblastProofGenerator* BBProof::getProofGenerator() { return d_bbpg.get(); }
 
 bool BBProof::isProofsEnabled() const { return d_env.isTheoryProofProducing(); }
 
+void BBProof::computeRelevantTerms(std::set<Node>& termSet)
+{
+  d_bb->computeRelevantTerms(termSet);
+}
+
+bool BBProof::isVariable(TNode node)
+{
+  return d_bb->isVariable(node);
+}
+
 }  // namespace bv
 }  // namespace theory
 }  // namespace cvc5::internal
