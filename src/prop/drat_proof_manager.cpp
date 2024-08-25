@@ -52,27 +52,30 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
       literal_nodes.push_back(d_cnfStream->getNode(lit));
     }
 
-    Node clause = nm->mkNode(Kind::OR, literal_nodes);
-    /** A negated clause is used to represent a deletion */
-    if (is_deletion) clause = nm->mkNode(Kind::NOT, clause);
-    /**
-     * NOTE: I was thinking of perhaps having Kinds like 'Kind::DRAT_ADDITION'
-     * or 'Kind::DRAT_DELETION'. Then, we could have something like
-     *
-     * `clause = nm->mkNode(Kind::DRAT_DELETION, clause)`
-     *
-     * etc.
-     */
-    drat_steps.push_back(clause);
+    Kind step_kind = is_deletion ? Kind::DRAT_DELETION : Kind::DRAT_ADDITION;
+    Node step = nm->mkNode(step_kind, literal_nodes);
+    drat_steps.push_back(step);
   }
 
   Node expected = nm->mkConst(false);
-  Node assumptions = nm->mkNode(Kind::SEXPR, d_assumptions);
-  Node input_formula = nm->mkNode(Kind::SEXPR, d_clauses);
+  std::vector<Node> children(d_assumptions.size() + d_clauses.size());
+  merge(d_assumptions.begin(), d_assumptions.end(),
+        d_clauses.begin(), d_clauses.end(),
+        children.begin());
+  /**
+   * NOTE: the way above seems the correct way. But just to be sure, I do not
+   * have to differentiate between assumptions and clauses, right? Something
+   * like
+   *
+   * Node assumptions = nm->mkNode(Kind::SEXPR, d_assumptions);
+   * Node input_formula = nm->mkNode(Kind::SEXPR, d_clauses);
+   *
+   */
+
   cdp.addStep(expected,
               ProofRule::DRAT_REFUTATION,
-              drat_steps,
-              {assumptions, input_formula});
+              children,
+              drat_steps);
   return cdp.getProofFor(expected);
 }
 

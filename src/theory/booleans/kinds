@@ -45,4 +45,9 @@ typerule OR ::cvc5::internal::theory::boolean::BooleanTypeRule
 typerule XOR ::cvc5::internal::theory::boolean::BooleanTypeRule
 typerule ITE ::cvc5::internal::theory::boolean::IteTypeRule
 
+operator DRAT_ADDITION 2: "DRAT addition proof step"
+operator DRAT_DELETION 2: "DRAT deletion proof step"
+typerule DRAT_ADDITION ::cvc5::internal::theory::boolean::BooleanTypeRule
+typerule DRAT_DELETION ::cvc5::internal::theory::boolean::BooleanTypeRule
+
 endtheory

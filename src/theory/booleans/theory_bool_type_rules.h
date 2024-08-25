@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Typing and cardinality rules for the theory of boolean.
+ * Typing and cardinality rules for the theory of Booleans.
  */
 
 #include "cvc5_private.h"
