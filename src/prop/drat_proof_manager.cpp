@@ -37,7 +37,8 @@ std::shared_ptr<ProofNode> DratProofManager::getProof()
   std::vector<Node> drat_steps;
 
   std::string line;
-  while (std::getline(d_dratProof, line)) {
+  while (std::getline(d_dratProof, line))
+  {
     Assert(line.length() > 0);
 
     bool is_deletion = line[0] == 'd';
