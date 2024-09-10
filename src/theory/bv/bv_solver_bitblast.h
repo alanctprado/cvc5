@@ -89,6 +89,11 @@ class BVSolverBitblast : public BVSolver
    */
   void handleEagerAtom(TNode fact, bool assertFact);
 
+  /**
+   * Creates a proof node for the unsatisfiability of the given BV problem
+   */
+  void createProof(Node conflict, std::shared_ptr<ProofNode> unsat_proof);
+
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<BBProof> d_bitblaster;
 

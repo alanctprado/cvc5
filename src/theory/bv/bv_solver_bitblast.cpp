@@ -266,8 +266,9 @@ void BVSolverBitblast::postCheck(Theory::Effort level)
       d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
     else
     {
-      std::shared_ptr<ProofNode> sat_proof = d_satSolver->getProof();
-      Trace("drat-proof") << "DEU: " << *sat_proof << "\n";
+      std::shared_ptr<ProofNode> unsat_proof = d_satSolver->getProof();
+      createProof(conflict, unsat_proof);
+      Trace("drat-proof") << "DEU: " << *unsat_proof << "\n";
       d_im.conflict(conflict, InferenceId::BV_BITBLAST_CONFLICT);
     }
   }
@@ -466,6 +467,18 @@ void BVSolverBitblast::handleEagerAtom(TNode fact, bool assertFact)
   }
   // Clear cache since we only need to do this once per bit-blasted atom.
   registeredAtoms.clear();
+}
+
+void BVSolverBitblast::createProof(Node conflict,
+                                   std::shared_ptr<ProofNode> unsat_proof)
+{
+  CDProof cdp(d_env);
+  cdp.addProof(unsat_proof);
+  LazyCDProof* cnf_proof = d_ppm->getCnfProof();
+  for (auto child : unsat_proof->getChildren())
+  {
+    cdp.addProof(cnf_proof->getProofFor((*child).getArguments()[0]));
+  }
 }
 
 }  // namespace bv
