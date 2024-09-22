@@ -121,6 +121,7 @@ option(USE_COCOA         "Use CoCoALib for further polynomial operations")
 option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_EDITLINE      "Use Editline for better interactive support")
 option(USE_EXACT         "Use Exact Pseudo-Boolean solver")
+option(USE_ROUNDINGSAT   "Use RoundingSat Pseudo-Boolean solver")
 option(USE_GLPK          "Use GLPK simplex solver")
 option(USE_KISSAT        "Use Kissat SAT solver")
 option(USE_POLY          "Use LibPoly for polynomial arithmetic")
@@ -602,6 +603,11 @@ if(USE_EXACT)
   add_definitions(-DCVC5_USE_EXACT)
 endif()
 
+if(USE_ROUNDINGSAT)
+  find_package(RoundingSat REQUIRED 1.0.0)
+  add_definitions(-DCVC5_USE_ROUNDINGSAT)
+endif()
+
 find_package(SymFPU REQUIRED)
 
 if(GPL_LIBS)
@@ -797,6 +803,7 @@ print_config("Kissat                    " ${USE_KISSAT} FOUND_SYSTEM ${Kissat_FO
 print_config("LibPoly                   " ${USE_POLY} FOUND_SYSTEM ${Poly_FOUND_SYSTEM})
 print_config("CoCoALib                  " ${USE_COCOA} FOUND_SYSTEM ${CoCoA_FOUND_SYSTEM})
 print_config("Exact                     " ${USE_EXACT} FOUND_SYSTEM ${Exact_FOUND_SYSTEM})
+print_config("RoundingSat               " ${USE_ROUNDINGSAT} FOUND_SYSTEM ${RoundingSat_FOUND_SYSTEM})
 
 if(CVC5_USE_CLN_IMP)
   print_config("MP library                " "cln" FOUND_SYSTEM ${CLN_FOUND_SYSTEM})
