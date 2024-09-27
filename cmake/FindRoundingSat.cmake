@@ -38,6 +38,10 @@ else()
   set(make_cmd "make")
 endif()
 
+if(NOT EXISTS "${DEPS_BASE}/bin")
+  file(MAKE_DIRECTORY "${DEPS_BASE}/bin")
+endif()
+
 # ---------------------------------------------------------------------------------------------------------------------------------
 
 ExternalProject_Add(
@@ -50,30 +54,12 @@ ExternalProject_Add(
   BUILD_IN_SOURCE YES
   CONFIGURE_COMMAND ${CMAKE_COMMAND} -B build -DCMAKE_BUILD_TYPE=Release -Dbuild_result=StaticLib -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   BUILD_COMMAND ${make_cmd} -C <SOURCE_DIR>/build
-#  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/libExact.a ${DEPS_BASE}/lib/libExact.a
-#  COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/src <INSTALL_DIR>/include/exact
-#  BUILD_BYPRODUCTS <INSTALL_DIR>/build/libExact.a
+  INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/roundingsat ${DEPS_BASE}/bin/roundingsat
+  BUILD_BYPRODUCTS <INSTALL_DIR>/build/roundingsat
 )
 
-#add_custom_command(
-#  TARGET Exact-EP
-#  POST_BUILD
-#  COMMAND ${CMAKE_COMMAND} -E remove ${DEPS_BASE}/include/exact/*.cpp
-#  COMMAND ${CMAKE_COMMAND} -E remove ${DEPS_BASE}/include/exact/**/*.cpp
-#)
+add_compile_definitions(ROUNDINGSAT_PATH="${DEPS_BASE}/bin/roundingsat")
 
-#set(Exact_INCLUDE_DIR "${DEPS_BASE}/include/exact")
-#set(Exact_LIBRARIES "${DEPS_BASE}/lib/libExact.a")
-
-#set(Exact_FOUND TRUE)
-
-#add_library(Exact STATIC IMPORTED GLOBAL)
-#set_target_properties(Exact PROPERTIES IMPORTED_LOCATION "${Exact_LIBRARIES}")
-#set_target_properties(Exact PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Exact_INCLUDE_DIR}")
-
-#mark_as_advanced(Exact_FOUND)
-#mark_as_advanced(Exact_FOUND_SYSTEM)
-#mark_as_advanced(Exact_INCLUDE_DIR)
-#mark_as_advanced(Exact_LIBRARIES)
-
-#add_dependencies(Exact Exact-EP)
+set(RoundingSat_FOUND TRUE)
+mark_as_advanced(RoundingSat_FOUND)
+mark_as_advanced(RoundingSat_FOUND_SYSTEM)
