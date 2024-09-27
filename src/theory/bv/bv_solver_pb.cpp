@@ -145,20 +145,25 @@ bool BVSolverPseudoBoolean::preNotifyFact(
 
 void BVSolverPseudoBoolean::initPbSolver()
 {
+  // TODO: move guards / creation to a factory class
   switch (options().bv.bvPbSolver)
   {
     case options::BvPbSolver::EXACT:
-      // TODO: move guard / creation to a factory class
       #ifdef CVC5_USE_EXACT
-      d_pbSolver.reset(new ExactSolver(
-          d_env,
-          statisticsRegistry(),
-          "theory::bv::BVSolverBitblast::"));
+        Trace("bv-pb") << "Initializing Exact...\n";
+        d_pbSolver.reset(new ExactSolver(
+            d_env,
+            statisticsRegistry(),
+            "theory::bv::BVSolverBitblast::"));
       #endif
       break;
     case options::BvPbSolver::ROUNDINGSAT:
-      Trace("bv-pb") << "TO-DO: initialize RoundingSAT" << std::endl;
-      Unimplemented();
+      #ifdef CVC5_USE_ROUNDINGSAT
+        Trace("bv-pb") << "Initializing RoundingSat...\n";
+        Trace("bv-pb") << "Deu: " << ROUNDINGSAT_PATH << "\n\n";
+        Unimplemented();
+      #endif
+      break;
     default: Unimplemented();
   }
 }
