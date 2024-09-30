@@ -663,6 +663,8 @@ libcvc5_add_sources(
   theory/bv/pb/pb_blast_strategies_template.h
   theory/bv/pb/pb_node_blaster.cpp
   theory/bv/pb/pb_node_blaster.h
+  theory/bv/pb/roundingsat.cpp
+  theory/bv/pb/roundingsat.h
   theory/bv/proof_checker.cpp
   theory/bv/proof_checker.h
   theory/bv/theory_bv.cpp
