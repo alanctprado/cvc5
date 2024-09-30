@@ -21,6 +21,7 @@
 #include "theory/bv/theory_bv.h"
 
 #include "theory/bv/pb/exact.h"
+#include "theory/bv/pb/roundingsat.h"
 
 namespace cvc5::internal {
 namespace theory {
@@ -149,19 +150,25 @@ void BVSolverPseudoBoolean::initPbSolver()
   switch (options().bv.bvPbSolver)
   {
     case options::BvPbSolver::EXACT:
+      Trace("bv-pb") << "Initializing Exact PB Solver...\n";
       #ifdef CVC5_USE_EXACT
-        Trace("bv-pb") << "Initializing Exact...\n";
         d_pbSolver.reset(new ExactSolver(
             d_env,
             statisticsRegistry(),
             "theory::bv::BVSolverBitblast::"));
+        Trace("bv-pb") << "Initialization successful...\n";
       #endif
       break;
     case options::BvPbSolver::ROUNDINGSAT:
+      Trace("bv-pb") << "Initializing RoundingSat PB Solver...\n";
       #ifdef CVC5_USE_ROUNDINGSAT
-        Trace("bv-pb") << "Initializing RoundingSat...\n";
         Trace("bv-pb") << "Deu: " << ROUNDINGSAT_PATH << "\n\n";
-        Unimplemented();
+        d_pbSolver.reset(new RoundingSatSolver(
+            ROUNDINGSAT_PATH,
+            d_env,
+            statisticsRegistry(),
+            "theory::bv::BVSolverBitblast::"));
+        Trace("bv-pb") << "Initialization successful...\n";
       #endif
       break;
     default: Unimplemented();
