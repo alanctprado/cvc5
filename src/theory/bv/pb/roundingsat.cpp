@@ -155,10 +155,9 @@ PbSolveState RoundingSatSolver::solve()
   std::fstream output;
   output.open(output_file);
   Trace("bv-pb-roundingsat") << "    RoundingSat result:\n";
-  output.seekg(0);
   std::string line;
   std::string result;
-  while ( getline (output,line) )
+  while (getline (output,line))
   {
     Trace("bv-pb-roundingsat") << "        " << line << '\n';
     if (line[0] == 's')
