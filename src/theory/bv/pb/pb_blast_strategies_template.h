@@ -174,10 +174,43 @@ T NegatedUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
   Assert(atom.getKind() == Kind::BITVECTOR_ULT);
   Trace("bv-pb") << "theory::bv::pb::NegatedUltPb " << atom << "\n    "
-                 << "is equivalent to DefaultUgePb with the sides swapped\n";
-  T swapped_atom =
-      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_UGE, atom[1], atom[0]);
-  return DefaultUgePb(swapped_atom, pbb);
+                 << "is equivalent to DefaultUgePb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_UGE, atom[0], atom[1]);
+  return DefaultUgePb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedUlePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_ULE);
+  Trace("bv-pb") << "theory::bv::pb::NegatedUlePb " << atom << "\n    "
+                 << "is equivalent to DefaultUgtPb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_UGT, atom[0], atom[1]);
+  return DefaultUgtPb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedUgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_UGT);
+  Trace("bv-pb") << "theory::bv::pb::NegatedUgtPb " << atom << "\n    "
+                 << "is equivalent to DefaultUlePb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_ULE, atom[0], atom[1]);
+  return DefaultUlePb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedUgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_UGE);
+  Trace("bv-pb") << "theory::bv::pb::NegatedUgePb " << atom << "\n    "
+                 << "is equivalent to DefaultUltPb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_ULT, atom[0], atom[1]);
+  return DefaultUltPb(equivalent_atom, pbb);
 }
 
 /*
