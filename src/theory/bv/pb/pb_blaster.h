@@ -97,6 +97,14 @@ void TPseudoBooleanBlaster<T>::initAtomStrategies()
       DefaultUgtPb<T>;
   d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UGE)] =
       DefaultUgePb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLT)] =
+      DefaultSltPb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLE)] =
+      DefaultSlePb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGT)] =
+      DefaultSgtPb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGE)] =
+      DefaultSgePb<T>;
   /** Setting default PB strategies for negated atoms */
   d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] = NegatedEqPb<T>;
   d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
@@ -107,6 +115,14 @@ void TPseudoBooleanBlaster<T>::initAtomStrategies()
       NegatedUgtPb<T>;
   d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UGE)] =
       NegatedUgePb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLT)] =
+      NegatedSltPb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SLE)] =
+      NegatedSlePb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGT)] =
+      NegatedSgtPb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_SGE)] =
+      NegatedSgePb<T>;
 }
 
 template <class T>
