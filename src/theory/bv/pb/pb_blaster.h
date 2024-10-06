@@ -91,8 +91,12 @@ void TPseudoBooleanBlaster<T>::initAtomStrategies()
   d_atomStrategies[static_cast<uint32_t>(Kind::EQUAL)] = DefaultEqPb<T>;
   d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
       DefaultUltPb<T>;
+  d_atomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_UGE)] =
+      DefaultUgePb<T>;
   /** Setting default PB strategies for negated atoms */
   d_negAtomStrategies[static_cast<uint32_t>(Kind::EQUAL)] = NegatedEqPb<T>;
+  d_negAtomStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ULT)] =
+      NegatedUltPb<T>;
 }
 
 template <class T>
