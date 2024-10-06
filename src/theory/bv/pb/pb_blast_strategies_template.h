@@ -169,6 +169,17 @@ T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   return mkAtomNode(constraints, nm);
 }
 
+template <class T>
+T NegatedUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_ULT);
+  Trace("bv-pb") << "theory::bv::pb::NegatedUltPb " << atom << "\n    "
+                 << "is equivalent to DefaultUgePb with the sides swapped\n";
+  T swapped_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_UGE, atom[1], atom[0]);
+  return DefaultUgePb(swapped_atom, pbb);
+}
+
 /*
  * Default Term PB-Blasting strategies
  *
