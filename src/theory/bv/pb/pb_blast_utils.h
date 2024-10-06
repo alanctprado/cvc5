@@ -58,6 +58,8 @@ inline T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm);
 template <class T>
 std::vector<std::string> mkPbXor(T a, T b, T res);
 /** Other auxiliary functions */
+template <class T = Node>
+inline std::vector<T> bvToSigned(unsigned sz, NodeManager* nm, int sign = 1);
 template <class T = Node> // TODO: I don't really want to set T as Node
 inline std::vector<T> bvToUnsigned(unsigned sz, NodeManager* nm, int sign = 1);
 template <class T>
@@ -164,6 +166,19 @@ inline std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
   constraints.push_back(mkConstraintNode(
       Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{1, -1, 1}, 0, nm));
   return constraints;
+}
+
+template <class T>
+inline std::vector<T> bvToSigned(unsigned size, NodeManager* nm, int sign)
+{
+  std::ostringstream os;
+  int coeff = (1 << size) * sign;
+  std::vector<T> coefficients(size);
+  coefficients[0] = nm->mkConstInt(Rational(-1 * (coeff /= 2)));
+  std::generate(coefficients.begin() + 1, coefficients.end(), [&coeff, nm] {
+    return nm->mkConstInt(Rational(coeff /= 2));
+  });
+  return coefficients;
 }
 
 template <class T>
