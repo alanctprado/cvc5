@@ -136,6 +136,28 @@ T DefaultUgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
   return mkAtomNode(constraints, nm);
 }
 
+template <class T>
+T DefaultUlePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_ULE);
+  Trace("bv-pb") << "theory::bv::pb::DefaultUlePb " << atom << "\n    "
+                 << "is equivalent to DefaultUgePb with the sides swapped\n";
+  T swapped_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_UGE, atom[1], atom[0]);
+  return DefaultUgePb(swapped_atom, pbb);
+}
+
+template <class T>
+T DefaultUgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_UGT);
+  Trace("bv-pb") << "theory::bv::pb::DefaultUgtPb " << atom << "\n    "
+                 << "is equivalent to DefaultUltPb with the sides swapped\n";
+  T swapped_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_ULT, atom[1], atom[0]);
+  return DefaultUltPb(swapped_atom, pbb);
+}
+
 /**
  * Negated Atom PB-Bitblasting strategies:
  *
