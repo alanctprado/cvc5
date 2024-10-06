@@ -158,6 +158,90 @@ T DefaultUgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   return DefaultUltPb(swapped_atom, pbb);
 }
 
+template <class T>
+T DefaultSltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SLT);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSltPb " << atom << "\n";
+
+  T lhs = pbb->blastTerm(atom[0]);
+  T rhs = pbb->blastTerm(atom[1]);
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> coefficients = bvToSigned(rhs[0].getNumChildren(), nm);
+  for (const T& c : bvToSigned(lhs[0].getNumChildren(), nm, -1))
+    coefficients.push_back(c);
+
+  std::vector<T> variables;
+  for (const T& v : rhs[0]) variables.push_back(v);
+  for (const T& v : lhs[0]) variables.push_back(v);
+
+  T atom_constraint =
+      mkConstraintNode(Kind::GEQ, variables, coefficients, pbb->d_ONE, nm);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSltPb resulted in constraint "
+                 << atom_constraint << "\n";
+
+  std::unordered_set<T> constraints;
+  constraints.emplace(atom_constraint);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
+  return mkAtomNode(constraints, nm);
+}
+
+template <class T>
+T DefaultSgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SGE);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSgePb " << atom << "\n";
+
+  T lhs = pbb->blastTerm(atom[0]);
+  T rhs = pbb->blastTerm(atom[1]);
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> coefficients = bvToSigned(lhs[0].getNumChildren(), nm);
+  for (const T& c : bvToSigned(rhs[0].getNumChildren(), nm, -1))
+    coefficients.push_back(c);
+
+  std::vector<T> variables;
+  for (const T& v : lhs[0]) variables.push_back(v);
+  for (const T& v : rhs[0]) variables.push_back(v);
+
+  T atom_constraint =
+      mkConstraintNode(Kind::GEQ, variables, coefficients, pbb->d_ZERO, nm);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSgePb resulted in constraint "
+                 << atom_constraint << "\n";
+
+  std::unordered_set<T> constraints;
+  constraints.emplace(atom_constraint);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
+  return mkAtomNode(constraints, nm);
+}
+
+template <class T>
+T DefaultSlePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SLE);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSlePb " << atom << "\n    "
+                 << "is equivalent to DefaultSgePb with the sides swapped\n";
+  T swapped_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SGE, atom[1], atom[0]);
+  return DefaultSgePb(swapped_atom, pbb);
+}
+
+template <class T>
+T DefaultSgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SGT);
+  Trace("bv-pb") << "theory::bv::pb::DefaultSgtPb " << atom << "\n    "
+                 << "is equivalent to DefaultSltPb with the sides swapped\n";
+  T swapped_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SLT, atom[1], atom[0]);
+  return DefaultSltPb(swapped_atom, pbb);
+}
+
 /**
  * Negated Atom PB-Bitblasting strategies:
  *
@@ -233,6 +317,50 @@ T NegatedUgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
   T equivalent_atom =
       pbb->getNodeManager()->mkNode(Kind::BITVECTOR_ULT, atom[0], atom[1]);
   return DefaultUltPb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedSltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SLT);
+  Trace("bv-pb") << "theory::bv::pb::NegatedSltPb " << atom << "\n    "
+                 << "is equivalent to DefaultSgePb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SGE, atom[0], atom[1]);
+  return DefaultSgePb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedSlePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SLE);
+  Trace("bv-pb") << "theory::bv::pb::NegatedSlePb " << atom << "\n    "
+                 << "is equivalent to DefaultSgtPb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SGT, atom[0], atom[1]);
+  return DefaultSgtPb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedSgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SGT);
+  Trace("bv-pb") << "theory::bv::pb::NegatedSgtPb " << atom << "\n    "
+                 << "is equivalent to DefaultSlePb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SLE, atom[0], atom[1]);
+  return DefaultSlePb(equivalent_atom, pbb);
+}
+
+template <class T>
+T NegatedSgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_SGE);
+  Trace("bv-pb") << "theory::bv::pb::NegatedSgePb " << atom << "\n    "
+                 << "is equivalent to DefaultSltPb\n";
+  T equivalent_atom =
+      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_SLT, atom[0], atom[1]);
+  return DefaultSltPb(equivalent_atom, pbb);
 }
 
 /*
