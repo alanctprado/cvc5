@@ -30,8 +30,8 @@ namespace pb {
 /**
  * Default Atom PB-Bitblasting strategies:
  *
- * @param node the atom to be bitblasted
- * @param pbb the pseudo-boolean bitblaster
+ * @param atom  the atom to be bitblasted
+ * @param pbb   the pseudo-boolean bitblaster
  */
 
 template <class T>
@@ -105,11 +105,42 @@ T DefaultUltPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   return mkAtomNode(constraints, nm);
 }
 
+template <class T>
+T DefaultUgePb(T atom, TPseudoBooleanBlaster<T>* pbb)
+{
+  Assert(atom.getKind() == Kind::BITVECTOR_UGE);
+  Trace("bv-pb") << "theory::bv::pb::DefaultUgePb " << atom << "\n";
+
+  T lhs = pbb->blastTerm(atom[0]);
+  T rhs = pbb->blastTerm(atom[1]);
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> coefficients = bvToUnsigned(lhs[0].getNumChildren(), nm);
+  for (const T& c : bvToUnsigned(rhs[0].getNumChildren(), nm, -1))
+    coefficients.push_back(c);
+
+  std::vector<T> variables;
+  for (const T& v : lhs[0]) variables.push_back(v);
+  for (const T& v : rhs[0]) variables.push_back(v);
+
+  T atom_constraint =
+      mkConstraintNode(Kind::GEQ, variables, coefficients, pbb->d_ZERO, nm);
+  Trace("bv-pb") << "theory::bv::pb::DefaultUgePb resulted in constraint "
+                 << atom_constraint << "\n";
+
+  std::unordered_set<T> constraints;
+  constraints.emplace(atom_constraint);
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
+  return mkAtomNode(constraints, nm);
+}
+
 /**
  * Negated Atom PB-Bitblasting strategies:
  *
- * @param node the atom to be bitblasted
- * @param pbb the pseudo-boolean bitblaster
+ * @param atom  the atom to be bitblasted
+ * @param pbb   the pseudo-boolean bitblaster
  */
 
 template <class T>
@@ -128,7 +159,7 @@ T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
   std::vector<T> variables;
   for (const T& v : blasted_xor[0]) variables.push_back(v);
   T atom_constraint = mkConstraintNode(
-      Kind::GEQ, variables, std::vector<int>{1, 1, 1, 1}, 1, nm);
+      Kind::GEQ, variables, std::vector<int>(variables.size(), 1), 1, nm);
   Trace("bv-pb") << "theory::bv::pb::NegatedEqPb resulted in constraint "
                  << atom_constraint << "\n";
 
