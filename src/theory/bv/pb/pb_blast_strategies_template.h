@@ -513,9 +513,9 @@ T DefaultAndPb(T term, TPseudoBooleanBlaster<T>* pbb)
 
     for (unsigned i = 0; i < num_bits; i++)
     {
-      std::vector<Node> teste = {blasted[0][i], result_vars[i]};
+      std::vector<Node> unit_constraint = {blasted[0][i], result_vars[i]};
       constraints.insert(mkConstraintNode(Kind::GEQ,
-                                          teste,
+                                          unit_constraint,
                                           {1, -1},
                                           0,
                                           nm));
@@ -528,13 +528,62 @@ T DefaultAndPb(T term, TPseudoBooleanBlaster<T>* pbb)
   {
     variables[i].push_back(result_vars[i]);
     coefficients[i].push_back(1);
-  constraints.insert(
-      mkConstraintNode(Kind::GEQ, variables[i], coefficients[i], 1 - n, nm));
+    constraints.insert(
+        mkConstraintNode(Kind::GEQ, variables[i], coefficients[i], 1 - n, nm));
   }
 
   T blasted_term = mkTermNode(result_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
   Trace("bv-pb") << "theory::bv::pb::DefaultAndPb done\n";
+  return blasted_term;
+}
+
+template <class T>
+T DefaultOrPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultOrPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_OR);
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+  T result_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb") << " with bits " << result_vars << "\n";
+
+  std::vector<std::vector<Node>> variables(num_bits);
+  std::vector<std::vector<int>> coefficients(num_bits);
+  std::unordered_set<Node> constraints;
+
+  unsigned n = term.getNumChildren();
+  for (unsigned j = 0; j < n; j++)
+  {
+    T blasted = pbb->blastTerm(term[j]);
+    Assert(blasted[0].getNumChildren() == num_bits);
+    for (const T& c : blasted[1]) constraints.insert(c);
+
+    for (unsigned i = 0; i < num_bits; i++)
+    {
+      std::vector<Node> unit_constraint = {blasted[0][i], result_vars[i]};
+      constraints.insert(mkConstraintNode(Kind::GEQ,
+                                          unit_constraint,
+                                          {-1, 1},
+                                          0,
+                                          nm));
+      variables[i].push_back(blasted[0][i]);
+      coefficients[i].push_back(1);
+    }
+  }
+
+  for (unsigned i = 0; i < num_bits; i++)
+  {
+    variables[i].push_back(result_vars[i]);
+    coefficients[i].push_back(-1);
+    constraints.insert(
+        mkConstraintNode(Kind::GEQ, variables[i], coefficients[i], 0, nm));
+  }
+
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
+  Trace("bv-pb") << "theory::bv::pb::DefaultOrPb done\n";
   return blasted_term;
 }
 
