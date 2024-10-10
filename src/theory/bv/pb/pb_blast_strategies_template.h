@@ -587,6 +587,37 @@ T DefaultOrPb(T term, TPseudoBooleanBlaster<T>* pbb)
   return blasted_term;
 }
 
+template <class T>
+T DefaultNotPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultNotPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_NOT);
+  Assert(term.getNumChildren() == 1);
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+  T result_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb") << " with bits " << result_vars << "\n";
+
+  std::unordered_set<Node> constraints;
+
+  T blasted = pbb->blastTerm(term[0]);
+  Assert(blasted[0].getNumChildren() == num_bits);
+  for (const T& c : blasted[1]) constraints.insert(c);
+
+  for (unsigned i = 0; i < num_bits; i++)
+  {
+    std::vector<Node> unit_constraint = {blasted[0][i], result_vars[i]};
+    constraints.insert(
+        mkConstraintNode(Kind::EQUAL, unit_constraint, {1, 1}, 1, nm));
+  }
+
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
+  Trace("bv-pb") << "theory::bv::pb::DefaultOrPb done\n";
+  return blasted_term;
+}
+
 }  // namespace pb
 }  // namespace bv
 }  // namespace theory
