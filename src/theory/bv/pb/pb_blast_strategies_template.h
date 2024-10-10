@@ -614,7 +614,7 @@ T DefaultNotPb(T term, TPseudoBooleanBlaster<T>* pbb)
 
   T blasted_term = mkTermNode(result_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
-  Trace("bv-pb") << "theory::bv::pb::DefaultOrPb done\n";
+  Trace("bv-pb") << "theory::bv::pb::DefaultNotPb done\n";
   return blasted_term;
 }
 
