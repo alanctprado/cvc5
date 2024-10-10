@@ -141,7 +141,9 @@ void TPseudoBooleanBlaster<T>::initTermStrategies()
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_AND)] =
       DefaultAndPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_OR)] =
-      DefaultAndPb<T>;
+      DefaultOrPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NOT)] =
+      DefaultNotPb<T>;
 }
 
 template <class T>
