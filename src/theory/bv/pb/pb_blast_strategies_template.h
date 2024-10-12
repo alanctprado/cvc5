@@ -473,7 +473,7 @@ T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
   }
 
   /** extra_bits used to store possible overflow */
-  int extra_bits = ceil_log2(term.getNumChildren());
+  int extra_bits = ceilLog2(term.getNumChildren());
   T extra_vars = pbb->newVariable(extra_bits);
   for (const T& v : extra_vars) variables.push_back(v);
   for (const T& v : term_vars) variables.push_back(v);
@@ -615,6 +615,70 @@ T DefaultNotPb(T term, TPseudoBooleanBlaster<T>* pbb)
   T blasted_term = mkTermNode(result_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
   Trace("bv-pb") << "theory::bv::pb::DefaultNotPb done\n";
+  return blasted_term;
+}
+
+template <class T>
+T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultMultPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_MULT);
+  if (term.getNumChildren() != 2) Unreachable();
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+
+  T term_vars = pbb->newVariable(num_bits);
+  T tableau = pbb->newVariable(num_bits * num_bits);
+  Trace("bv-pb") << " with bits " << term_vars << "\n";
+
+  T lhs = pbb->blastTerm(term[0]);
+  T rhs = pbb->blastTerm(term[1]);
+  Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
+  Assert(num_bits == rhs[0].getNumChildren());
+
+  std::unordered_set<Node> constraints;
+  for (unsigned i = 0; i < num_bits; i++)
+  {
+    for (unsigned j = 0; j < num_bits; j++)
+    {
+    std::vector<Node> and_constraint = {lhs[0][i], rhs[0][j], tableau[i * num_bits + j]};
+    constraints.insert(
+        mkConstraintNode(Kind::GEQ, and_constraint, {1, 1, -2}, 0, nm));
+    constraints.insert(
+        mkConstraintNode(Kind::GEQ, and_constraint, {-1, -1, 1}, -1, nm));
+
+    }
+  }
+
+  std::vector<Node> variables;
+  std::vector<int> coefficients;
+  for (unsigned i = 0; i < num_bits; i++)
+  {
+    for (unsigned j = 0; j < num_bits; j++)
+    {
+      coefficients.push_back(1 << (i+j));
+      variables.push_back(tableau[i * num_bits + j]);
+    }
+  }
+
+  T extra_vars = pbb->newVariable(num_bits);
+  for (const T& v : extra_vars) variables.push_back(v);
+  for (const T& v : term_vars) variables.push_back(v);
+  for (unsigned i = 0; i < 2 * num_bits; i++)
+  {
+    coefficients.push_back(-1 * (1 << (num_bits - i - 1)));
+  }
+
+  for (const T& c : lhs[1]) constraints.insert(c);
+  for (const T& c : rhs[1]) constraints.insert(c);
+
+  constraints.insert(
+      mkConstraintNode(Kind::EQUAL, variables, coefficients, pbb->d_ZERO, nm));
+
+  T blasted_term = mkTermNode(term_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
+  Trace("bv-pb") << "theory::bv::pb::DefaultMultPb done\n";
   return blasted_term;
 }
 
