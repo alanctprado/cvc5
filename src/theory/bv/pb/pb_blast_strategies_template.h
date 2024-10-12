@@ -674,7 +674,7 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   for (const T& c : rhs[1]) constraints.insert(c);
 
   constraints.insert(
-      mkConstraintNode(Kind::EQUAL, variables, coefficients, pbb->d_ZERO, nm));
+      mkConstraintNode(Kind::EQUAL, variables, coefficients, 0, nm));
 
   T blasted_term = mkTermNode(term_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
