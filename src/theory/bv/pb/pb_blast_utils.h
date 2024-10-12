@@ -63,7 +63,9 @@ inline std::vector<T> bvToSigned(unsigned sz, NodeManager* nm, int sign = 1);
 template <class T = Node> // TODO: I don't really want to set T as Node
 inline std::vector<T> bvToUnsigned(unsigned sz, NodeManager* nm, int sign = 1);
 template <class T>
-int ceil_log2(T a);
+inline int ceilLog2(T a);
+template <class T>
+inline unsigned long long triangularIndex(T a, T b);
 
 /**
  * Constraint Node format:
@@ -194,7 +196,7 @@ inline std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign)
 }
 
 template <class T>
-inline int ceil_log2(T a)
+inline int ceilLog2(T a)
 {
   unsigned long long x = (unsigned long long)a;
   static const unsigned long long t[6] = {0xFFFFFFFF00000000ull,
@@ -214,6 +216,15 @@ inline int ceil_log2(T a)
     j >>= 1;
   }
   return y;
+}
+
+template <class T>
+inline unsigned long long triangularIndex(T a, T b)
+{
+  unsigned long long _a = (unsigned long long)a;
+  unsigned long long _b = (unsigned long long)b;
+  if (_a >= _b) return _a * (_a + 1) / 2 + _b;
+  return _b * (_b + 1) / 2 + _a;
 }
 
 }  // namespace pb
