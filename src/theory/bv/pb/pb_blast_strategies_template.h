@@ -42,7 +42,7 @@ T UndefinedAtomPbStrategy(T atom, TPseudoBooleanBlaster<T>* pbb)
   Unreachable();
 }
 
-/** TODO: consider adding bit-level equalities? */
+/** TODO(alanctprado): consider adding bit-level equalities? */
 template <class T>
 T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
@@ -55,7 +55,7 @@ T DefaultEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 
   NodeManager* nm = pbb->getNodeManager();
   std::vector<T> coefficients = bvToUnsigned(lhs[0].getNumChildren(), nm);
-  for (const T& c : bvToUnsigned(lhs[1].getNumChildren(), nm, -1))
+  for (const T& c : bvToUnsigned(rhs[0].getNumChildren(), nm, -1))
     coefficients.push_back(c);
 
   std::vector<T> variables;
