@@ -28,12 +28,13 @@ namespace bv {
 namespace pb {
 
 /**
- * Default Atom PB-Bitblasting strategies:
+ * Default Atom pb-blasting strategies:
  *
- * @param atom  the atom to be bitblasted
- * @param pbb   the pseudo-boolean bitblaster
+ * @param atom  the atom to be pb-blasted
+ * @param pbb   the pseudo-boolean blaster
  */
 
+/** Fallback method for unimplemented atom strategies */
 template <class T>
 T UndefinedAtomPbStrategy(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
@@ -243,23 +244,32 @@ T DefaultSgtPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 }
 
 /**
- * Negated Atom PB-Bitblasting strategies:
+ * Negated Atom pb-blasting strategies:
  *
- * @param atom  the atom to be bitblasted
- * @param pbb   the pseudo-boolean bitblaster
+ * @param atom  the atom to be pb-blasted
+ * @param pbb   the pseudo-boolean blaster
  */
 
+/**
+ * Negated Bit-Vector Equality
+ *
+ * (x != y) is equivalent to
+ *
+ * r = xor(x, y)
+ * \sum_i r_i >= 1
+ */
 template <class T>
 T NegatedEqPb(T atom, TPseudoBooleanBlaster<T>* pbb)
 {
-  Assert(atom.getKind() == Kind::EQUAL);
   Trace("bv-pb") << "theory::bv::pb::NegatedEqPb " << atom << "\n";
+  Assert(atom.getKind() == Kind::EQUAL);
   NodeManager* nm = pbb->getNodeManager();
 
-  T xor_node =
-      pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR, atom[0], atom[1]);
+  T xor_node = pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR,
+                                             atom[0], atom[1]);
   T blasted_xor = pbb->blastTerm(xor_node);
-  /** TODO: can I assume that # atom[0] == # atom[1] ? */
+
+  Assert(utils::getSize(atom[0]) == utils::getSize(atom[1]));
   Assert(blasted_xor[0].getNumChildren() == utils::getSize(atom[0]));
 
   std::vector<T> variables;
@@ -415,12 +425,22 @@ T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
   return mkTermNode(variables, constraints, nm);
 }
 
+/**
+ * Bit-Vector XOR (binary)
+ *
+ * (x != y) is equivalent to
+ *
+ * r = xor(x, y)
+ * \sum_i r_i >= 1
+ */
 template <class T>
 T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
 {
   Trace("bv-pb") << "theory::bv::pb::DefaultXorPb blasting " << term;
   Assert(term.getKind() == Kind::BITVECTOR_XOR);
-  if (term.getNumChildren() != 2) Unreachable();
+  if (term.getNumChildren() < 2) Unreachable();
+  if (term.getNumChildren() != 2)
+    Unimplemented() << "cvc5 currently supports only XOR for two operands";
 
   NodeManager* nm = pbb->getNodeManager();
   unsigned num_bits = utils::getSize(term);
@@ -430,6 +450,7 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
 
   T lhs = pbb->blastTerm(term[0]);
   T rhs = pbb->blastTerm(term[1]);
+  Assert(lhs[0].getNumChildren() == num_bits);
   Assert(lhs[0].getNumChildren() == rhs[0].getNumChildren());
 
   std::unordered_set<T> constraints;
@@ -443,7 +464,7 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
   for (const T& c : rhs[1]) constraints.insert(c);
 
   T blasted_term = mkTermNode(variables, constraints, nm);
-  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
+  Assert(blasted_term[0].getNumChildren() == num_bits);
   Trace("bv-pb") << "theory::bv::pb::DefaultXorPb done\n";
   return blasted_term;
 }

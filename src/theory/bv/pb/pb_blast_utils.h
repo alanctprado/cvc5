@@ -151,22 +151,29 @@ inline T mkAtomNode(std::unordered_set<T> constraints, NodeManager* nm)
   return mkAtomNode(v, nm);
 }
 
-/** Creates the constraints that correspond to res = a \xor b */
+/**
+ * Creates the constraints that corresponds to res \equiv a \xor b.
+ *
+ * In CNF, this translates to
+ *
+ *           (a∨b∨¬res) ∧ (a∨¬b∨res) ∧ (¬a∨b∨res) ∧ (¬a∨¬b∨¬res)
+ */
 template <class T>
 inline std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
 {
   std::vector<T> constraints;
+  // a or b or ~res <-> a + b + ~res >= 1 <-> a + b - res >= 0
   constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{-1, 1, 1}, 0, nm));
-  constraints.push_back(mkConstraintNode(Kind::GEQ,
-                                         std::vector<T>{res, a, b},
-                                         std::vector<int>{-1, -1, -1},
-                                         -2,
-                                         nm));
+      Kind::GEQ, std::vector<T>{a, b, res}, std::vector<int>{1, 1, -1}, 0, nm));
+  // a or ~b or res <-> a + ~b + res >= 1 <-> a - b + res >= 0
   constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{1, 1, -1}, 0, nm));
+      Kind::GEQ, std::vector<T>{a, b, res}, std::vector<int>{1, -1, 1}, 0, nm));
+  // ~a or b or res <-> ~a + b + res >= 1 <-> -a + b + res >= 0
   constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{1, -1, 1}, 0, nm));
+      Kind::GEQ, std::vector<T>{a, b, res}, std::vector<int>{-1, 1, 1}, 0, nm));
+  // ~a or ~b or ~res <-> ~a + ~b + ~res >= 1 <-> -a - b - res >= -2
+  constraints.push_back(mkConstraintNode(
+      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{-1, -1, -1}, -2, nm));
   return constraints;
 }
 
