@@ -678,7 +678,7 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   {
     for (unsigned j = 0; j < num_bits; j++)
     {
-      coefficients.push_back(1 << (i+j));
+      coefficients.push_back(1 << (2 * num_bits - i - j - 2));
       variables.push_back(tableau[i * num_bits + j]);
     }
   }
@@ -688,7 +688,7 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   for (const T& v : term_vars) variables.push_back(v);
   for (unsigned i = 0; i < 2 * num_bits; i++)
   {
-    coefficients.push_back(-1 * (1 << (num_bits - i - 1)));
+    coefficients.push_back(-1 * (1 << (2 * num_bits - i - 1)));
   }
 
   for (const T& c : lhs[1]) constraints.insert(c);
