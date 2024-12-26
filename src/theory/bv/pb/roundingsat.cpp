@@ -147,6 +147,7 @@ PbSolveState RoundingSatSolver::solve()
   std::string output_file = std::tmpnam(nullptr);
   output_file += ".txt";
   std::string command = d_binPath;
+  command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
   command += " " + d_pboPath + " > " + output_file;
   Trace("bv-pb-roundingsat") << "    The command is: " << command << "\n";
 
