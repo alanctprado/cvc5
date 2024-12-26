@@ -57,7 +57,10 @@ TheoryBV::TheoryBV(Env& env,
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
   }
-  d_internal_pb.reset(new pb::BVSolverPseudoBoolean(env, &d_state, d_im));
+  if (options().bv.bvPbProof)
+  {
+    d_internal_pb.reset(new pb::BVSolverPseudoBoolean(env, &d_state, d_im));
+  }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
 }
@@ -153,10 +156,13 @@ void TheoryBV::postCheck(Effort e)
   d_invalidateModelCache = true;
   if (options().bv.bvPbProof)
   {
-    Trace("bv-pb") << "Post-checking on dummy PB solver...\n";
+    Trace("bv-pb") << "Post-checking on PB solver...\n";
     d_internal_pb->postCheck(e);
   }
-  d_internal->postCheck(e);
+  else
+  {
+    d_internal->postCheck(e);
+  }
 }
 
 bool TheoryBV::preNotifyFact(

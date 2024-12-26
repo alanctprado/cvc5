@@ -162,6 +162,7 @@ const char* toString(InferenceId i)
     case InferenceId::TABLES_GROUP_SAME_PART: return "TABLES_GROUP_SAME_PART";
 
     case InferenceId::BV_BITBLAST_CONFLICT: return "BV_BITBLAST_CONFLICT";
+    case InferenceId::BV_PB_BLAST_CONFLICT: return "BV_PB_BLAST_CONFLICT";
     case InferenceId::BV_BITBLAST_INTERNAL_EAGER_LEMMA:
       return "BV_BITBLAST_EAGER_LEMMA";
     case InferenceId::BV_BITBLAST_INTERNAL_BITBLAST_LEMMA:

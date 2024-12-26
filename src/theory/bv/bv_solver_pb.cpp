@@ -45,6 +45,7 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   if (level != Theory::Effort::EFFORT_FULL) return;
   /** Process PB-blast queue and generate sets of variables and constraints. */
   // std::vector<Node> blasted_atoms;
+  std::vector<Node> conf;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
@@ -58,12 +59,40 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
     {
       d_pbSolver->addConstraint(constraint);
     }
+    conf.push_back(fact);
   }
   // convertProblemOPB(blasted_atoms);
   PbSolveState s = d_pbSolver->solve();
   if (s == PbSolveState::PB_SAT) Trace("bv-pb") << "SATISFIABLE\n";
   else if (s == PbSolveState::PB_UNSAT) Trace("bv-pb") << "UNSATISFIABLE\n";
   else Unhandled();
+
+  if (s == PbSolveState::PB_UNSAT)
+  {
+    // std::vector<prop::SatLiteral> unsat_assumptions;
+    // d_satSolver->getUnsatAssumptions(unsat_assumptions);
+
+    Node conflict;
+    // Unsat assumptions produce conflict.
+    // if (unsat_assumptions.size() > 0)
+    // {
+    //   std::vector<Node> conf;
+    //   for (const prop::SatLiteral& lit : unsat_assumptions)
+    //   {
+    //     conf.push_back(d_literalFactCache[lit]);
+    //     Trace("bv-bitblast")
+    //         << "unsat assumption (" << lit << "): " << conf.back() << std::endl;
+    //   }
+    NodeManager* nm = nodeManager();
+    conflict = nm->mkAnd(conf);
+    // }
+    // else  // Input assertions produce conflict.
+    // {
+    //   std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
+    //   conflict = nm->mkAnd(assertions);
+    // }
+    d_im.conflict(conflict, InferenceId::BV_PB_BLAST_CONFLICT);
+  }
 }
 
 std::string BVSolverPseudoBoolean::constraintToStringOPB(
@@ -103,6 +132,7 @@ std::string BVSolverPseudoBoolean::constraintToStringOPB(
   return result.str();
 }
 
+// currently unused
 void BVSolverPseudoBoolean::convertProblemOPB(std::vector<Node> blasted_atoms)
 {
   std::unordered_set<Node> variables;
