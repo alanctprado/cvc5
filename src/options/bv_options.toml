@@ -126,6 +126,9 @@ name   = "Bitvector Theory"
 [[option.mode.BITBLAST]]
   name = "bitblast"
   help = "Enables bitblasting solver."
+[[option.mode.PB_BLAST]]
+  name = "pb-blast"
+  help = "Enables the PB-blasting solver."
 [[option.mode.BITBLAST_INTERNAL]]
   name = "bitblast-internal"
   help = "Enables bitblasting to internal SAT solver with proof support."
