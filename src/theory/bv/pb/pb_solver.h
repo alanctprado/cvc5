@@ -26,10 +26,10 @@ namespace bv {
 namespace pb {
 
 template <class T>
-class PbSolver {
+class PseudoBooleanSolver {
 public:
   /** Virtual destructor */
-  virtual ~PbSolver() {}
+  virtual ~PseudoBooleanSolver() {}
   /** Add a variable to the solver. */
   virtual void addVariable(const T variable) = 0;
   /** Assert a constraint to the solver. */
@@ -37,7 +37,7 @@ public:
   /** Check the satisfiability of the added clauses */
   virtual PbSolveState solve() = 0;
 //  /** Call modelValue() when the search is done.*/
-//  virtual PbValue modelValue(PbLiteral l) = 0;
+// TODO(alanctprado): virtual PbValue modelValue(PbLiteral l) = 0;
 
  private:
   void init();

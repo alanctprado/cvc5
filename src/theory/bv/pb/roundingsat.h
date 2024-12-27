@@ -29,7 +29,7 @@ namespace theory {
 namespace bv {
 namespace pb {
 
-class RoundingSatSolver : public PbSolver<Node>, protected EnvObj
+class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
 {
   // friend class PbSolverFactory;
 

@@ -181,12 +181,12 @@ template <class T>
 inline std::vector<T> bvToSigned(unsigned size, NodeManager* nm, int sign)
 {
   std::ostringstream os;
-  int coeff = (1 << size) * sign;
+  int coeff = sign;
   std::vector<T> coefficients(size);
-  coefficients[0] = nm->mkConstInt(Rational(-1 * (coeff /= 2)));
-  std::generate(coefficients.begin() + 1, coefficients.end(), [&coeff, nm] {
-    return nm->mkConstInt(Rational(coeff /= 2));
+  std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
+    return nm->mkConstInt(Rational((coeff *= 2) / 2));
   });
+  coefficients[size - 1] *= -1;
   return coefficients;
 }
 
@@ -194,10 +194,10 @@ template <class T>
 inline std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign)
 {
   std::ostringstream os;
-  int coeff = (1 << size) * sign;
+  int coeff = sign;
   std::vector<T> coefficients(size);
   std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
-    return nm->mkConstInt(Rational(coeff /= 2));
+    return nm->mkConstInt(Rational((coeff *= 2) / 2));
   });
   return coefficients;
 }

@@ -416,7 +416,7 @@ T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
   for (unsigned i = 0; i < size; i++)
   {
     Integer bit_value = term.getConst<BitVector>()
-                            .extract(size - i - 1, size - i - 1)
+                            .extract(i, i)
                             .getValue();
     T rhs = bit_value == Integer(0) ? pbb->d_ZERO : pbb->d_ONE;
     constraints.push_back(
@@ -496,8 +496,8 @@ T DefaultAddPb(T term, TPseudoBooleanBlaster<T>* pbb)
   /** extra_bits used to store possible overflow */
   int extra_bits = ceilLog2(term.getNumChildren());
   T extra_vars = pbb->newVariable(extra_bits);
-  for (const T& v : extra_vars) variables.push_back(v);
   for (const T& v : term_vars) variables.push_back(v);
+  for (const T& v : extra_vars) variables.push_back(v);
 
   aux = bvToUnsigned(num_bits + extra_bits, nm, -1);
   std::move(aux.begin(), aux.end(), std::back_inserter(coefficients));
@@ -678,17 +678,17 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   {
     for (unsigned j = 0; j < num_bits; j++)
     {
-      coefficients.push_back(1 << (2 * num_bits - i - j - 2));
+      coefficients.push_back(1 << (i + j));
       variables.push_back(tableau[i * num_bits + j]);
     }
   }
 
   T extra_vars = pbb->newVariable(num_bits);
-  for (const T& v : extra_vars) variables.push_back(v);
   for (const T& v : term_vars) variables.push_back(v);
+  for (const T& v : extra_vars) variables.push_back(v);
   for (unsigned i = 0; i < 2 * num_bits; i++)
   {
-    coefficients.push_back(-1 * (1 << (2 * num_bits - i - 1)));
+    coefficients.push_back(-1 * (1 << i));
   }
 
   for (const T& c : lhs[1]) constraints.insert(c);
