@@ -39,7 +39,6 @@ TheoryBV::TheoryBV(Env& env,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
-      d_internal_pb(nullptr),
       d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::bv::"),
@@ -54,13 +53,13 @@ TheoryBV::TheoryBV(Env& env,
       d_internal.reset(new BVSolverBitblast(env, &d_state, d_im));
       break;
 
+    case options::BVSolver::PB_BLAST:
+      d_internal.reset(new pb::BVSolverPseudoBoolean(env, &d_state, d_im));
+      break;
+
     default:
       AlwaysAssert(options().bv.bvSolver == options::BVSolver::BITBLAST_INTERNAL);
       d_internal.reset(new BVSolverBitblastInternal(d_env, &d_state, d_im));
-  }
-  if (options().bv.bvPbProof)
-  {
-    d_internal_pb.reset(new pb::BVSolverPseudoBoolean(env, &d_state, d_im));
   }
   d_theoryState = &d_state;
   d_inferManager = &d_im;
@@ -155,25 +154,12 @@ bool TheoryBV::preCheck(Effort e) { return d_internal->preCheck(e); }
 void TheoryBV::postCheck(Effort e)
 {
   d_invalidateModelCache = true;
-  if (options().bv.bvPbProof)
-  {
-    Trace("bv-pb") << "Post-checking on PB solver...\n";
-    d_internal_pb->postCheck(e);
-  }
-  else
-  {
-    d_internal->postCheck(e);
-  }
+  d_internal->postCheck(e);
 }
 
 bool TheoryBV::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (options().bv.bvPbProof)
-  {
-    Trace("bv-pb") << "Prenotifying fact to dummy PB solver...\n";
-    d_internal_pb->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
-  }
   return d_internal->preNotifyFact(atom, pol, fact, isPrereg, isInternal);
 }
 
