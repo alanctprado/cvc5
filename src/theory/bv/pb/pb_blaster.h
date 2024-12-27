@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alan Prado, Haniel Barbosa
+ *   Alan Prado
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,9 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * Wrapper around the PB solver used for PB-blasting.
+ * The TPseudoBooleanBlaster is responsible for:
+ *   - Storing the mapping between Nodes and their corresponding blast results;
+ *   - Indexing the pseudo-Boolean blasting strategies.
  */
 
 #include "cvc5_private.h"
@@ -27,10 +29,6 @@ namespace theory {
 namespace bv {
 namespace pb {
 
-/**
- * The PB-blaster that manages the mapping between Nodes
- * and their bitwise definition
- */
 
 template <class T>
 class TPseudoBooleanBlaster
@@ -39,7 +37,7 @@ class TPseudoBooleanBlaster
   NodeManager* d_nm;
 
  protected:
-  typedef std::unordered_map<T, T> TermDefMap;  // TODO: CDHashMap?
+  typedef std::unordered_map<T, T> TermDefMap;  // TODO(alanctprado): CDHashMap?
   typedef std::unordered_map<T, T> AtomDefMap;
   TermDefMap d_termCache;
   AtomDefMap d_atomCache;
@@ -48,8 +46,8 @@ class TPseudoBooleanBlaster
   typedef T (*AtomStrategy)(T, TPseudoBooleanBlaster<T>*);
 
   /**
-   * Function tables for the various pseudo-boolean blasting strategies,
-   * indexed by node kind
+   * Function tables for the various pseudo-Boolean blasting strategies,
+   * indexed by Node kind.
    */
   AtomStrategy d_atomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];
   AtomStrategy d_negAtomStrategies[static_cast<uint32_t>(Kind::LAST_KIND)];

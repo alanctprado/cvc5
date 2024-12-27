@@ -82,7 +82,7 @@ class BVSolverPseudoBoolean : public BVSolver
   void initPbSolver();
 
   /** PB solver back end (configured via options::bvSatSolver. */
-  std::unique_ptr<PbSolver<Node>> d_pbSolver;
+  std::unique_ptr<PseudoBooleanSolver<Node>> d_pbSolver;
   /** Bit-blaster used to bit-blast atoms/terms. */
   std::unique_ptr<PseudoBooleanBlaster> d_pbBlaster;
 
