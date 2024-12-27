@@ -42,8 +42,8 @@ class ExactSolver : public PbSolver<Node>, protected EnvObj
   ~ExactSolver() override = default;
 
   /* ExactSolver interface -------------------------------------------------- */
-  void addConstraint(Node) override;
-  void addVariable(Node) override;
+  void addConstraint(const Node constraint) override;
+  void addVariable(const Node variable) override;
   PbSolveState solve() override;
 
 // private:   TODO: should the constructor be private (factory)?

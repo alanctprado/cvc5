@@ -58,7 +58,7 @@ void RoundingSatSolver::init()
   d_pboFile.open(d_pboPath);
 }
 
-void RoundingSatSolver::addVariable(Node variable)
+void RoundingSatSolver::addVariable(const Node variable)
 {
   Trace("bv-pb-roundingsat") << "RoundingSatSolver::addVariable " << variable << "\n";
   Assert(variable.isVar());
@@ -67,7 +67,7 @@ void RoundingSatSolver::addVariable(Node variable)
   // TODO: ++d_statistics.d_numVariables;
 }
 
-void RoundingSatSolver::addConstraint(Node constraint)
+void RoundingSatSolver::addConstraint(const Node constraint)
 {
   Trace("bv-pb-roundingsat") << "RoundingSatSolver::addConstraint " << constraint << "\n";
   if (d_constraintSet.count(constraint)) return;
