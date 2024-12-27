@@ -183,10 +183,10 @@ inline std::vector<T> bvToSigned(unsigned size, NodeManager* nm, int sign)
   std::ostringstream os;
   int coeff = sign;
   std::vector<T> coefficients(size);
-  std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
+  std::generate(coefficients.begin(), coefficients.end() - 1, [&coeff, nm] {
     return nm->mkConstInt(Rational((coeff *= 2) / 2));
   });
-  coefficients[size - 1] *= -1;
+  coefficients[size - 1] = nm->mkConstInt(Rational(-1 * (coeff *= 2) / 2));
   return coefficients;
 }
 
