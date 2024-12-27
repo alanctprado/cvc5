@@ -34,7 +34,7 @@ namespace pb {
 
 //class CadicalPropagator;
 
-class ExactSolver : public PbSolver<Node>, protected EnvObj
+class ExactSolver : public PseudoBooleanSolver<Node>, protected EnvObj
 {
   // friend class PbSolverFactory;
 

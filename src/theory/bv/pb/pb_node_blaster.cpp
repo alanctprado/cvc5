@@ -14,6 +14,7 @@
  */
 
 #include "theory/bv/pb/pb_node_blaster.h"
+#include <string>
 
 namespace cvc5::internal {
 namespace theory {
@@ -32,35 +33,41 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
    * Note: We rewrite the nodes because it's not guaranteed (yet) that facts
    * sent to theories are rewritten.
    */
-  Trace("bv-pb") << "\nOriginal atom: " << atom << "\n";
-  if (hasAtom(atom)) return;
+  Trace("bv-pb") << "PseudoBooleanBlaster::blastAtom: " << atom << "\n";
+  if (hasAtom(atom))
+  {
+    Trace("bv-pb-blast") << "Blasted atom recovered from cache\n";
+    return;
+  }
 
-  Node result;
+  Node resulting_constraints;
   if (atom.getKind() == Kind::NOT)
   {
     Node normalized = rewrite(atom[0]);
-    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized
+    Trace("bv-pb-blast") << "Normalized atom: " << normalized
                          << "; Kind: " << normalized.getKind() << "\n";
-    result = d_negAtomStrategies[static_cast<uint32_t>(normalized.getKind())](
-        normalized, this);
+    resulting_constraints =
+        d_negAtomStrategies[static_cast<uint32_t>(normalized.getKind())](
+            normalized, this);
   }
 
   else
   {
     Node normalized = rewrite(atom);
-    Trace("bv-pb-blast") << "\nNormalized atom: " << normalized
+    Trace("bv-pb-blast") << "Normalized atom: " << normalized
                          << "; Kind: " << normalized.getKind() << "\n";
-    result = d_atomStrategies[static_cast<uint32_t>(normalized.getKind())](
-        normalized, this);
+    resulting_constraints =
+        d_atomStrategies[static_cast<uint32_t>(normalized.getKind())](
+            normalized, this);
   }
 
   Trace("bv-pb-blast") << "Blasted atom:\n";
   if (TraceIsOn("bv-pb-blast"))
   {
-    for (const Node& c : result) Trace("bv-pb-blast") << c << "\n";
+    for (const Node& c : resulting_constraints) Trace("bv-pb-blast") << c << "\n";
   }
 
-  storeAtom(atom, result);
+  storeAtom(atom, resulting_constraints);
 }
 
 Node PseudoBooleanBlaster::newVariable(unsigned numBits)
@@ -79,10 +86,11 @@ Node PseudoBooleanBlaster::newVariable(unsigned numBits)
 Node PseudoBooleanBlaster::blastTerm(Node term)
 {
   Assert(term.getType().isBitVector());
+  Trace("bv-pb") << "PseudoBooleanBlaster::blastTerm: " << term << "\n";
   if (hasTerm(term))
   {
-    Trace("bv-pb") << "Recovered bits " << getTerm(term)[0] << " for term "
-                   << term << "\n";
+    Trace("bv-pb") << "Recovered bits " << getTerm(term)[0]
+                   << " for term " << term << "\n";
     return getTerm(term);
   }
   Kind kind = term.getKind();

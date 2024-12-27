@@ -10,7 +10,8 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * PB-blaster used to PB-blast to 0-1 linear inequalities
+ * Implementation of a simple PB-blaster. Implements the bare minimum to PB-
+ * blast bit-vector atoms and terms.
  */
 
 #include "cvc5_private.h"
@@ -26,11 +27,6 @@ namespace theory {
 namespace bv {
 namespace pb {
 
-/**
- * Implementation of a simple PB-blaster.
- *
- * Implements the bare minimum to PB-blast bit-vector atoms/terms.
- */
 class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
                              protected EnvObj
 {
@@ -40,8 +36,13 @@ class PseudoBooleanBlaster : public TPseudoBooleanBlaster<Node>,
 
   /** PB-blast atom 'node'. */
   void blastAtom(Node atom) override;
-  /** PB-blast term 'node' and return variables and constraints in 'sp'. */
+
+  /**
+   * PB-blast term 'node', returns the variables for this term and the
+   * constraints for it and for all its subterms.
+   */
   Node blastTerm(Node term) override;
+
   /** Create a new variable not yet used in the solver. */
   Node newVariable(unsigned numBits = 1) override;
 
