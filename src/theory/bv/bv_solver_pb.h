@@ -74,14 +74,7 @@ class BVSolverPseudoBoolean : public BVSolver
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
 
-  /**
-   * Get the current value of `node`.
-   *
-   * The `initialize` flag indicates whether bits should be zero-initialized
-   * if they were not bit-blasted yet.
-   *
-   * TODO(alanctprado): document
-   */
+  /** TODO(alanctprado): document */
   Node getValue(TNode node, bool initialize) override;
 
  private:
@@ -98,20 +91,6 @@ class BVSolverPseudoBoolean : public BVSolver
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_facts;
-
-  /**
-   * TODO(alanctprado)
-   * The OPB module below is currently unused. Consider removing later
-   */
-
-  /**
-   * Transform the node representation of a constraint to the OPB string that
-   * represents the same constraint;
-   */
-  std::string constraintToStringOPB(Node constraint,
-                                    std::unordered_set<Node>& variables);
-  /** Write PB problem in OPB format */
-  void convertProblemOPB(std::vector<Node> problem);
 };
 
 }  // namespace pb
