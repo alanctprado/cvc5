@@ -39,62 +39,114 @@ BVSolverPseudoBoolean::BVSolverPseudoBoolean(Env& env,
   initPbSolver();
 }
 
+/** Same as BVSolverBitblast::needsEqualityEngine */
+bool BVSolverPseudoBoolean::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // we always need the equality engine if sharing is enabled for processing
+  // equality engine and shared terms
+  return logicInfo().isSharingEnabled() || options().bv.bvEqEngine;
+}
+
 void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
 {
   Trace("bv-pb") << "Post check with effort level " << level << "\n";
   if (level != Theory::Effort::EFFORT_FULL) return;
-  /** Process PB-blast queue and generate sets of variables and constraints. */
-  // std::vector<Node> blasted_atoms;
-  std::vector<Node> conf;
+
+  std::vector<Node> blasted_atoms;
   while (!d_facts.empty())
   {
     Node fact = d_facts.front();
     d_facts.pop();
-    Node result;  // Variables and constraints of the current fact.
+    Node result;  // Variables and constraints for the current fact.
     if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) Unhandled();
     d_pbBlaster->blastAtom(fact);
     result = d_pbBlaster->getAtom(fact);
-    // blasted_atoms.push_back(result);
     for (Node constraint : result)
     {
       d_pbSolver->addConstraint(constraint);
     }
-    conf.push_back(fact);
+    blasted_atoms.push_back(fact);
   }
-  // convertProblemOPB(blasted_atoms);
-  PbSolveState s = d_pbSolver->solve();
-  if (s == PbSolveState::PB_SAT) Trace("bv-pb") << "SATISFIABLE\n";
-  else if (s == PbSolveState::PB_UNSAT) Trace("bv-pb") << "UNSATISFIABLE\n";
-  else Unhandled();
 
+  PbSolveState s = d_pbSolver->solve();
   if (s == PbSolveState::PB_UNSAT)
   {
-    // std::vector<prop::SatLiteral> unsat_assumptions;
-    // d_satSolver->getUnsatAssumptions(unsat_assumptions);
-
     Node conflict;
-    // Unsat assumptions produce conflict.
-    // if (unsat_assumptions.size() > 0)
-    // {
-    //   std::vector<Node> conf;
-    //   for (const prop::SatLiteral& lit : unsat_assumptions)
-    //   {
-    //     conf.push_back(d_literalFactCache[lit]);
-    //     Trace("bv-bitblast")
-    //         << "unsat assumption (" << lit << "): " << conf.back() << std::endl;
-    //   }
     NodeManager* nm = nodeManager();
-    conflict = nm->mkAnd(conf);
-    // }
-    // else  // Input assertions produce conflict.
-    // {
-    //   std::vector<Node> assertions(d_assertions.begin(), d_assertions.end());
-    //   conflict = nm->mkAnd(assertions);
-    // }
+    conflict = nm->mkAnd(blasted_atoms);
     d_im.conflict(conflict, InferenceId::BV_PB_BLAST_CONFLICT);
+  }
+  else if (s == PbSolveState::PB_SAT)
+  {
+    Trace("bv-pb") << "SATISFIABLE\n";
+  }
+  else
+  {
+    Unreachable();
   }
 }
 
+bool BVSolverPseudoBoolean::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  Trace("bv-pb") << "Adding fact: " << fact << std::endl;
+  /**
+   * Check whether `fact` is an input assertion on user-level 0.
+   *
+   * TODO(alanctprado):
+   * Not really sure if this should be handled. I'm confident we concluded it
+   * won't happen. We don't care about other theories?
+   */
+  Valuation& val = d_state.getValuation();
+  if (options().bv.bvAssertInput && val.isFixed(fact)) Unhandled();
+  d_facts.push_back(fact);
+  /**
+   * TODO(alanctprado):
+   * Return false to enable equality engine reasoning in Theory, which is
+   * available if we are using the equality engine. I don't think it is our
+   * case.
+   */
+  return 1;
+}
+
+/** Same as BVSolverBitblast::explain */
+TrustNode BVSolverPseudoBoolean::explain(TNode n)
+{
+  Trace("bv-pb") << "explain called on " << n << std::endl;
+  return d_im.explainLit(n);
+}
+
+/**
+ * TODO(alanctprado):
+ * Used in BvSolverBitblast. Not sure we need it.
+ */
+void BVSolverPseudoBoolean::computeRelevantTerms(std::set<Node>& termSet)
+{
+   Unimplemented();
+}
+
+/**
+ * TODO(alanctprado):
+ * Used in BvSolverBitblast. Not sure we need it.
+ * Why is cvc5's documentation so bad? :O :(
+ */
+bool BVSolverPseudoBoolean::collectModelValues(TheoryModel* m,
+                                               const std::set<Node>& termSet)
+{
+   Unimplemented();
+}
+
+/**
+ * TODO(alanctprado):
+ * Used in BvSolverBitblast. Not sure we need it.
+ * Why is cvc5's documentation so bad? :O :(
+ */
+Node BVSolverPseudoBoolean::getValue(TNode node, bool initialize)
+{
+   Unimplemented();
+}
+
+/** TODO(alanctprado): currently unused */
 std::string BVSolverPseudoBoolean::constraintToStringOPB(
     Node constraint, std::unordered_set<Node>& variables)
 {
@@ -132,7 +184,7 @@ std::string BVSolverPseudoBoolean::constraintToStringOPB(
   return result.str();
 }
 
-// currently unused
+/** TODO(alanctprado): currently unused */
 void BVSolverPseudoBoolean::convertProblemOPB(std::vector<Node> blasted_atoms)
 {
   std::unordered_set<Node> variables;
@@ -151,27 +203,6 @@ void BVSolverPseudoBoolean::convertProblemOPB(std::vector<Node> blasted_atoms)
   opb_file << " #constraint= " << ordered_constraints.size() << "\n";
   for (std::string c : ordered_constraints) opb_file << c << "\n";
   Trace("bv-pb-opb") << opb_file.str();
-}
-
-bool BVSolverPseudoBoolean::preNotifyFact(
-    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
-{
-  Trace("bv-pb") << "Adding fact: " << fact << std::endl;
-  /**
-   * Check whether `fact` is an input assertion on user-level 0.
-   *
-   * Not really sure if this should be handled. I'm confident we concluded it
-   * won't happen. We don't care about other theories?
-   */
-  Valuation& val = d_state.getValuation();
-  if (options().bv.bvAssertInput && val.isFixed(fact)) Unhandled();
-  d_facts.push_back(fact);
-  /**
-   * Return false to enable equality engine reasoning in Theory, which is
-   * available if we are using the equality engine. I don't think it is our
-   * case.
-   */
-  return 1;
 }
 
 void BVSolverPseudoBoolean::initPbSolver()

@@ -1,6 +1,6 @@
 /******************************************************************************
  * Top contributors (to current version):
- *   Alan Prado, Haniel Barbosa
+ *   Alan Prado
  *
  * This file is part of the cvc5 project.
  *
@@ -10,7 +10,7 @@
  * directory for licensing information.
  * ****************************************************************************
  *
- * PB-blasting solver that currently supports no PB-solver :'-)
+ * PB-blasting solver. Supports RoundingSAT and Exact back-ends.
  */
 
 #include "cvc5_private.h"
@@ -35,7 +35,7 @@ class NotifyResetAssertions;
 class BBRegistrar;
 
 /**
- * PB-blasting solver
+ * PB-blasting solver for the theory of bit-vectors
  */
 class BVSolverPseudoBoolean : public BVSolver
 {
@@ -45,21 +45,44 @@ class BVSolverPseudoBoolean : public BVSolver
                         TheoryInferenceManager& inferMgr);
   ~BVSolverPseudoBoolean() = default;
 
+  /** TODO(alanctprado): document */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+
+  /** TODO(alanctprado): document */
+  void preRegisterTerm(TNode n) override {}  // same as BVSolverBitblast
+
+  /** TODO(alanctprado): document */
   void postCheck(Theory::Effort level) override;
+
+  /** TODO(alanctprado): document */
   bool preNotifyFact(TNode atom,
                      bool pol,
                      TNode fact,
                      bool isPrereg,
                      bool isInternal) override;
 
-  /** TODO: understant these */
+  /** TODO(alanctprado): document */
+  TrustNode explain(TNode n) override;
+
+  /** TODO(alanctprado): document */
   std::string identify() const override { return "BVSolverPseudoBoolean"; }
-  void preRegisterTerm(TNode n) override {}
+
+  /** TODO(alanctprado): document */
+  void computeRelevantTerms(std::set<Node>& termSet) override;
+
+  /** TODO(alanctprado): document */
   bool collectModelValues(TheoryModel* m,
-                          const std::set<Node>& termSet) override
-  {
-    return 1;
-  }
+                          const std::set<Node>& termSet) override;
+
+  /**
+   * Get the current value of `node`.
+   *
+   * The `initialize` flag indicates whether bits should be zero-initialized
+   * if they were not bit-blasted yet.
+   *
+   * TODO(alanctprado): document
+   */
+  Node getValue(TNode node, bool initialize) override;
 
  private:
   /** Initialize pseudo-boolean solver. */
@@ -75,6 +98,11 @@ class BVSolverPseudoBoolean : public BVSolver
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_facts;
+
+  /**
+   * TODO(alanctprado)
+   * The OPB module below is currently unused. Consider removing later
+   */
 
   /**
    * Transform the node representation of a constraint to the OPB string that
