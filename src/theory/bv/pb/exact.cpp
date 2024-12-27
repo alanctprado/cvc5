@@ -52,7 +52,7 @@ void ExactSolver::init()
   if (d_logProofs) { /** TODO */ }
 }
 
-void ExactSolver::addVariable(Node variable)
+void ExactSolver::addVariable(const Node variable)
 {
   Trace("bv-pb-exact") << "ExactSolver::addVariable " << variable << "\n";
   Assert(variable.isVar());
@@ -63,7 +63,7 @@ void ExactSolver::addVariable(Node variable)
   // TODO: ++d_statistics.d_numVariables;
 }
 
-void ExactSolver::addConstraint(Node constraint)
+void ExactSolver::addConstraint(const Node constraint)
 {
   Trace("bv-pb-exact") << "ExactSolver::addConstraint " << constraint << "\n";
   if (d_constraintSet.count(constraint)) return;

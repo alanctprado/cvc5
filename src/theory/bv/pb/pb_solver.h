@@ -31,9 +31,9 @@ public:
   /** Virtual destructor */
   virtual ~PbSolver() {}
   /** Add a variable to the solver. */
-  virtual void addVariable(T variable) = 0;
+  virtual void addVariable(const T variable) = 0;
   /** Assert a constraint to the solver. */
-  virtual void addConstraint(T constraint) = 0;
+  virtual void addConstraint(const T constraint) = 0;
   /** Check the satisfiability of the added clauses */
   virtual PbSolveState solve() = 0;
 //  /** Call modelValue() when the search is done.*/
