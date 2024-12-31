@@ -703,6 +703,72 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   return blasted_term;
 }
 
+template <class T>
+T DefaultConcatPb(T term, TPseudoBooleanBlaster<T> *pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultConcatPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_CONCAT);
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+  T result_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb") << " with bits " << result_vars << "\n";
+  std::unordered_set<Node> constraints;
+
+  unsigned result_index = 0;
+  for (unsigned i = 0; i < term.getNumChildren(); i++) {
+    Assert(result_index < num_bits);
+    T blasted_subterm = pbb->blastTerm(term[i]);
+    for (const T& c : blasted_subterm[1]) constraints.insert(c);
+    for (unsigned j = 0; j < blasted_subterm[0].getNumChildren(); j++)
+    {
+        std::vector<Node> vars = {blasted_subterm[0][j],
+                                  result_vars[result_index]};
+        constraints.insert(mkConstraintNode(Kind::EQUAL, vars, {1, -1}, 0, nm));
+        result_index++;
+    }
+  }
+  Assert(result_index == num_bits);
+
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == num_bits);
+  Trace("bv-pb") << "theory::bv::pb::DefaultConcatPb done\n";
+  return blasted_term;
+}
+
+template <class T>
+T DefaultExtractPb(T term, TPseudoBooleanBlaster<T> *pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultExtractPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_EXTRACT);
+  Assert(term.getNumChildren() == 1);
+
+  uint32_t high = utils::getExtractHigh(term);
+  uint32_t low = utils::getExtractLow(term);
+  uint32_t num_bits = high - low + 1;
+  Assert(num_bits == utils::getSize(term));
+
+  NodeManager* nm = pbb->getNodeManager();
+  // TODO(alanctprado): instead of creating new variables, return the
+  // corresponding variables from 'blasted'.
+  T result_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb") << " with bits " << result_vars << "\n";
+
+  T blasted = pbb->blastTerm(term[0]);
+  std::unordered_set<Node> constraints;
+  for (const T& c : blasted[1]) constraints.insert(c);
+
+  for (uint32_t i = low; i <= high; i++) {
+        std::vector<Node> vars = {blasted[0][i], result_vars[i - low]};
+        constraints.insert(mkConstraintNode(Kind::EQUAL, vars, {1, -1}, 0, nm));
+  }
+
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == num_bits);
+  Trace("bv-pb") << "theory::bv::pb::DefaultExtractPb done\n";
+  return blasted_term;
+}
+
 }  // namespace pb
 }  // namespace bv
 }  // namespace theory
