@@ -80,7 +80,7 @@ Node PseudoBooleanBlaster::newVariable(unsigned numBits)
     bits.push_back(nm->mkBoundVar("x" + std::to_string(d_varCounter++),
                                   nm->booleanType()));
   }
-  return getNodeManager()->mkNode(Kind::SEXPR, bits);
+  return nm->mkNode(Kind::SEXPR, bits);
 }
 
 Node PseudoBooleanBlaster::blastTerm(Node term)

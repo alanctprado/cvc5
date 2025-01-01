@@ -36,7 +36,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
  public:
   ~RoundingSatSolver() override = default;
 
-  /* ExactSolver interface -------------------------------------------------- */
+  /* RoundingSatSolver interface -------------------------------------------- */
   void addConstraint(const Node constraint) override;
   void addVariable(const Node variable) override;
   PbSolveState solve() override;
@@ -63,6 +63,8 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
    */
   void init();
 
+  void computeSatisfyingAssignment();
+
   std::string d_binPath;
 
   /** Whether we are logging proofs */
@@ -81,11 +83,15 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   /** Set of constraints already in the solver */
   std::unordered_set<Node> d_constraintSet;
 
+  /** TODO(alanctprado) */
   std::vector<std::string> d_opbConstraints;
 
   /** Tmp File */
   std::fstream d_pboFile;
   std::string d_pboPath;
+
+  /** Assignment map */
+  std::unordered_map<Node, int> d_assignmentMap;
 };
 
 }  // namespace pb
