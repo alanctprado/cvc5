@@ -168,9 +168,56 @@ PbSolveState RoundingSatSolver::solve()
   }
   output.close();
 
-  if (result == "SATISFIABLE") return PB_SAT;
+  if (result == "SATISFIABLE") {
+    computeSatisfyingAssignment();
+    return PB_SAT;
+  }
   if (result == "UNSATISFIABLE") return PB_UNSAT;
   return PB_UNKNOWN;
+}
+
+void RoundingSatSolver::computeSatisfyingAssignment()
+{
+  std::string output_file = std::tmpnam(nullptr);
+  output_file += ".txt";
+  std::string command = d_binPath;
+  command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
+  command += " --print-sol=1";
+  command += " " + d_pboPath + " > " + output_file;
+  Trace("bv-pb-debug") << "    The command is: " << command << "\n";
+
+  std::system(command.c_str());
+
+  std::fstream output;
+  output.open(output_file);
+  Trace("bv-pb-debug") << "RoundingSat result:\n";
+  std::string line;
+  std::string result;
+  std::string assignment;
+  while (getline (output,line))
+  {
+    Trace("bv-pb-debug") << line << '\n';
+    if (line[0] == 's') result = line.substr(2, line.length() - 2);
+    if (line[0] == 'v') assignment = line.substr(2, line.length() - 2);
+  }
+  output.close();
+  Assert(result == "SATISFIABLE");
+
+  std::vector<std::string> variables;
+  std::stringstream ss(assignment);
+  std::string var;
+  while (ss >> var) variables.push_back(var);
+
+  Trace("bv-pb-debug") << "RoundingSat result:\n";
+  NodeManager* nm = nodeManager();
+  d_assignmentMap.clear();
+  for (const auto& variable : variables) {
+    int value = (variable[0] == '-') ? 0 : 1;
+    Node variable_node = nm->mkBoundVar(variable.substr(1 - value), nm->booleanType());
+    d_assignmentMap[variable_node] = value;
+    Trace("bv-pb-debug") << variable_node << " = " << d_assignmentMap[variable_node] << "\n";
+  }
+
 }
 
 RoundingSatSolver::Statistics::Statistics(StatisticsRegistry& registry, const std::string& prefix)
