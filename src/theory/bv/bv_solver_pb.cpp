@@ -174,7 +174,14 @@ std::string BVSolverPseudoBoolean::getTermVariables(TNode term)
     result += variables[i].toString();
     result += " ";
   }
-  result += "]";
+  result += "]\n[ ";
+  for (int i = variables.getNumChildren() - 1; i >= 0; i--)
+  {
+    VariableId variable_id = variables[i].toString();
+    PbValue value = d_pbSolver->modelValue(variable_id);
+    result += (value == PB_FALSE) ? "0" : "1";
+  }
+  result += " ]";
   return result;
 }
 

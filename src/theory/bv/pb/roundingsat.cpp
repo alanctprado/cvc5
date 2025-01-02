@@ -196,28 +196,32 @@ void RoundingSatSolver::computeSatisfyingAssignment()
   std::string assignment;
   while (getline (output,line))
   {
-    Trace("bv-pb-debug") << line << '\n';
+    // Trace("bv-pb-debug") << line << '\n';
     if (line[0] == 's') result = line.substr(2, line.length() - 2);
     if (line[0] == 'v') assignment = line.substr(2, line.length() - 2);
   }
   output.close();
   Assert(result == "SATISFIABLE");
+  Trace("bv-pb-debug") << "Assignment:\n";
+  Trace("bv-pb-debug") << assignment;
 
   std::vector<std::string> variables;
   std::stringstream ss(assignment);
   std::string var;
   while (ss >> var) variables.push_back(var);
 
-  Trace("bv-pb-debug") << "RoundingSat result:\n";
-  NodeManager* nm = nodeManager();
   d_assignmentMap.clear();
   for (const auto& variable : variables) {
     int value = (variable[0] == '-') ? 0 : 1;
-    Node variable_node = nm->mkBoundVar(variable.substr(1 - value), nm->booleanType());
-    d_assignmentMap[variable_node] = value;
-    Trace("bv-pb-debug") << variable_node << " = " << d_assignmentMap[variable_node] << "\n";
+    VariableId variable_id = variable.substr(1 - value);
+    d_assignmentMap[variable_id] = (value == 0) ? PB_FALSE : PB_TRUE;
+    Trace("bv-pb-debug") << variable << " = " << d_assignmentMap[variable_id] << "\n";
   }
+}
 
+PbValue RoundingSatSolver::modelValue(const VariableId variable)
+{
+  return d_assignmentMap[variable];
 }
 
 RoundingSatSolver::Statistics::Statistics(StatisticsRegistry& registry, const std::string& prefix)

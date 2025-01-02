@@ -18,6 +18,8 @@
 #ifndef CVC5__THEORY__BV__PB_SOLVER_TYPES_H
 #define CVC5__THEORY__BV__PB_SOLVER_TYPES_H
 
+#include <string>
+
 namespace cvc5::internal {
 namespace theory {
 namespace bv {
@@ -25,17 +27,25 @@ namespace pb {
 
 /**
  * A ConstraintId should be a shared identifier between the proofs module and
- * the PB solver for a clause. TODO: implement it in `proof/constraint_id.h`
+ * the PB solver for a constraint (i.e. linear form). TODO(alanctprado):
+ * implement it in `proof/constraint_id.h`
  */
-typedef unsigned ConstraintId;
+typedef uint32_t ConstraintId;
 
-/**
- * Possible states of the PB solver.
- */
+/** ID of a variale. Currently a string in the format "x\d+". */
+typedef std::string VariableId;
+
+/** Possible states of the PB solver. */
 enum PbSolveState {
   PB_UNKNOWN,
   PB_SAT,
   PB_UNSAT
+};
+
+/** Values of a PB variable. */
+enum PbValue {
+  PB_TRUE,
+  PB_FALSE
 };
 
 }  // namespace pb

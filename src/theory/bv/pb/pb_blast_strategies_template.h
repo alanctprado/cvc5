@@ -673,29 +673,38 @@ T DefaultMultPb(T term, TPseudoBooleanBlaster<T>* pbb)
   }
 
   std::vector<Node> variables;
-  std::vector<int> coefficients;
+  std::vector<int64_t> coefficients;  // TODO(alanctprado): use GMP
   for (unsigned i = 0; i < num_bits; i++)
   {
     for (unsigned j = 0; j < num_bits; j++)
     {
-      coefficients.push_back(1 << (i + j));
+      coefficients.push_back(1LL << (i + j));
       variables.push_back(tableau[i * num_bits + j]);
     }
   }
 
   T extra_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb-mult") << term_vars << "\n";
+  Trace("bv-pb-mult") << extra_vars << "\n";
   for (const T& v : term_vars) variables.push_back(v);
   for (const T& v : extra_vars) variables.push_back(v);
   for (unsigned i = 0; i < 2 * num_bits; i++)
   {
-    coefficients.push_back(-1 * (1 << i));
+    coefficients.push_back(-1LL * (1LL << i));
   }
+
+
+
+
+  Trace("bv-pb-mult") << variables << "\n";
+  //Trace("bv-pb-mult") << coefficients << "\n";
+  Trace("bv-pb-mult") << mkLongConstraintNode(Kind::EQUAL, variables, coefficients, 0, nm) << "\n";
 
   for (const T& c : lhs[1]) constraints.insert(c);
   for (const T& c : rhs[1]) constraints.insert(c);
 
   constraints.insert(
-      mkConstraintNode(Kind::EQUAL, variables, coefficients, 0, nm));
+      mkLongConstraintNode(Kind::EQUAL, variables, coefficients, 0, nm));
 
   T blasted_term = mkTermNode(term_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
@@ -718,7 +727,7 @@ T DefaultConcatPb(T term, TPseudoBooleanBlaster<T> *pbb)
   unsigned result_index = 0;
   for (unsigned i = 0; i < term.getNumChildren(); i++) {
     Assert(result_index < num_bits);
-    T blasted_subterm = pbb->blastTerm(term[i]);
+    T blasted_subterm = pbb->blastTerm(term[term.getNumChildren() - i - 1]);
     for (const T& c : blasted_subterm[1]) constraints.insert(c);
     for (unsigned j = 0; j < blasted_subterm[0].getNumChildren(); j++)
     {
