@@ -13,6 +13,7 @@
  * Various utility functions for PB-blasting.
  */
 
+#include <cstdint>
 #include "cvc5_private.h"
 
 #ifndef CVC5__THEORY__BV__PB__PB_BLAST_UTILS_H
@@ -98,6 +99,21 @@ inline T mkConstraintNode(Kind k,
   Assert(variables.size() == coefficients.size());
   std::vector<T> coefficients_t;
   for (int coeff : coefficients)
+    coefficients_t.push_back(nm->mkConstInt(Rational(coeff)));
+  T value_t = nm->mkConstInt(value);
+  return mkConstraintNode(k, variables, coefficients_t, value_t, nm);
+}
+
+template <class T>
+inline T mkLongConstraintNode(Kind k,
+                          std::vector<T> variables,
+                          std::vector<int64_t> coefficients,
+                          int value,
+                          NodeManager* nm)
+{
+  Assert(variables.size() == coefficients.size());
+  std::vector<T> coefficients_t;
+  for (int64_t coeff : coefficients)
     coefficients_t.push_back(nm->mkConstInt(Rational(coeff)));
   T value_t = nm->mkConstInt(value);
   return mkConstraintNode(k, variables, coefficients_t, value_t, nm);
