@@ -40,6 +40,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   void addConstraint(const Node constraint) override;
   void addVariable(const Node variable) override;
   PbSolveState solve() override;
+  PbValue modelValue(const VariableId variable) override;
 
 // private:   TODO: should the constructor be private (factory)?
   /**
@@ -91,7 +92,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   std::string d_pboPath;
 
   /** Assignment map */
-  std::unordered_map<Node, int> d_assignmentMap;
+  std::unordered_map<VariableId, PbValue> d_assignmentMap;
 };
 
 }  // namespace pb
