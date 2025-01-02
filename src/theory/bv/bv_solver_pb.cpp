@@ -67,8 +67,10 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
     Node conflict = nm->mkAnd(blasted_atoms);
     d_im.conflict(conflict, InferenceId::BV_PB_BLAST_CONFLICT);
   }
-  else if (s == PbSolveState::PB_SAT)
+  else if (s == PbSolveState::PB_SAT) {
     Trace("bv-pb") << "SATISFIABLE\n";
+    for (const auto& atom : blasted_atoms) debugSatisfiedAtom(atom);
+  }
   else
     Unreachable();
 }
@@ -160,6 +162,53 @@ void BVSolverPseudoBoolean::initPbSolver()
       #endif
       break;
     default: Unimplemented();
+  }
+}
+
+std::string BVSolverPseudoBoolean::getTermVariables(TNode term)
+{
+  std::string result = "[ ";
+  TNode variables = d_pbBlaster->getTerm(term)[0];
+  for (int i = variables.getNumChildren() - 1; i >= 0; i--)
+  {
+    result += variables[i].toString();
+    result += " ";
+  }
+  result += "]";
+  return result;
+}
+
+void BVSolverPseudoBoolean::debugSatisfiedAtom(TNode atom)
+{
+  Trace("bv-pb-debug") << "\nStarting debugging...\n\n";
+  Trace("bv-pb-debug") << atom << "\n";
+  Node lhs = atom[0];
+  Node rhs = atom[1];
+  Trace("bv-pb-debug") << "KIND: " << atom.getKind() << "\n";
+  Trace("bv-pb-debug") << "LHS: " << lhs << "\n";
+  Trace("bv-pb-debug") << "LHS VARS: " << getTermVariables(lhs) << "\n";
+  Trace("bv-pb-debug") << "RHS VARS: " << rhs << "\n";
+  Trace("bv-pb-debug") << "RHS VARS: " << getTermVariables(rhs) << "\n";
+  debugSatisfiedTerm(lhs);
+  debugSatisfiedTerm(rhs);
+}
+
+void BVSolverPseudoBoolean::debugSatisfiedTerm(TNode term)
+{
+  Trace("bv-pb-debug") << "\n" << term << "\n";
+  Trace("bv-pb-debug") << "KIND: " << term.getKind() << "\n";
+  Trace("bv-pb-debug") << "RESULT VARS: " << getTermVariables(term) << "\n";
+  for (unsigned i = 0; i < term.getNumChildren(); i++)
+  {
+    Node child = term[i];
+    Trace("bv-pb-debug") << "CHILD: " << child << "\n";
+    Trace("bv-pb-debug") << "CHILD VARS: " << getTermVariables(child) << "\n";
+  }
+
+  for (unsigned i = 0; i < term.getNumChildren(); i++)
+  {
+    Node child = term[i];
+    debugSatisfiedTerm(child);
   }
 }
 

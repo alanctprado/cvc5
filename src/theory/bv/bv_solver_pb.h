@@ -91,6 +91,11 @@ class BVSolverPseudoBoolean : public BVSolver
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_facts;
+
+  /** Debugging */
+  std::string getTermVariables(TNode term);
+  void debugSatisfiedAtom(TNode atom);
+  void debugSatisfiedTerm(TNode term);
 };
 
 }  // namespace pb
