@@ -1,0 +1,4 @@
+Processing file: /home/alan/logic/cvc5/pb/yoni.smt2
+Problem: yoni.smt2
+bb_result = [(1, 5), (2, 5), (3, 6), (4, 6), (5, 11), (6, 40),]
+pb_result = [(1, 8), (2, 7), (3, 12), (4, 28), (5, 314), (6, 4844),]
