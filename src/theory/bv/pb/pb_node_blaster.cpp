@@ -33,13 +33,13 @@ void PseudoBooleanBlaster::blastAtom(Node atom)
    * Note: We rewrite the nodes because it's not guaranteed (yet) that facts
    * sent to theories are rewritten.
    */
-  Trace("bv-pb") << "PseudoBooleanBlaster::blastAtom: " << atom << "\n";
   if (hasAtom(atom))
   {
-    Trace("bv-pb-blast") << "Blasted atom recovered from cache\n";
+    // Trace("bv-pb") << "PseudoBooleanBlaster::blastAtom recovered from cache: "
+    //               << atom << "\n";
     return;
   }
-
+  Trace("bv-pb") << "PseudoBooleanBlaster::blastAtom: " << atom << "\n";
   Node resulting_constraints;
   if (atom.getKind() == Kind::NOT)
   {
@@ -86,15 +86,17 @@ Node PseudoBooleanBlaster::newVariable(unsigned numBits)
 Node PseudoBooleanBlaster::blastTerm(Node term)
 {
   Assert(term.getType().isBitVector());
-  Trace("bv-pb") << "PseudoBooleanBlaster::blastTerm: " << term << "\n";
   if (hasTerm(term))
   {
-    Trace("bv-pb") << "Recovered bits " << getTerm(term)[0]
-                   << " for term " << term << "\n";
+    // Trace("bv-pb") << "Recovered bits " << getTerm(term)[0]
+    //                << " for term " << term << "\n";
     return getTerm(term);
   }
+  Trace("bv-pb") << "PseudoBooleanBlaster::blastTerm: " << term << "\n";
   Kind kind = term.getKind();
   Node result = d_termStrategies[static_cast<uint32_t>(kind)](term, this);
+  Trace("bv-pb") << "PseudoBooleanBlaster::blastTerm result for " << term << "\n";
+  Trace("bv-pb-constraints") << result[1].toString() << "\n";
   Assert(result[0].getNumChildren() == utils::getSize(term));
   storeTerm(term, result);
   return result;

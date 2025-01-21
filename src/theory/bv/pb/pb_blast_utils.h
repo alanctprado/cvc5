@@ -189,7 +189,7 @@ inline std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
       Kind::GEQ, std::vector<T>{a, b, res}, std::vector<int>{-1, 1, 1}, 0, nm));
   // ~a or ~b or ~res <-> ~a + ~b + ~res >= 1 <-> -a - b - res >= -2
   constraints.push_back(mkConstraintNode(
-      Kind::GEQ, std::vector<T>{res, a, b}, std::vector<int>{-1, -1, -1}, -2, nm));
+      Kind::GEQ, std::vector<T>{a, b, res}, std::vector<int>{-1, -1, -1}, -2, nm));
   return constraints;
 }
 
