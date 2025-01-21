@@ -90,6 +90,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   /** Tmp File */
   std::fstream d_pboFile;
   std::string d_pboPath;
+  std::string d_proofPath;
 
   /** Assignment map */
   std::unordered_map<VariableId, PbValue> d_assignmentMap;
