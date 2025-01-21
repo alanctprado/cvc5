@@ -45,7 +45,6 @@ RoundingSatSolver::RoundingSatSolver(std::string solverPath,
       d_logProofs(logProofs),
       d_statistics(registry, name)
 {
-  if (logProofs) Unimplemented();
   init();  // TODO: Remove this? Make a private constructor?
 }
 
@@ -54,6 +53,10 @@ void RoundingSatSolver::init()
   Trace("bv-pb-roundingsat") << "RoundingSatSolver::init\n";
   d_pboPath = std::tmpnam(nullptr);
   d_pboPath += ".opb";
+  if (d_logProofs)
+  {
+    d_proofPath = std::tmpnam(nullptr);
+  }
   (void) std::ofstream(d_pboPath, std::ostream::app);
 }
 
@@ -148,6 +151,10 @@ PbSolveState RoundingSatSolver::solve()
   output_file += ".txt";
   std::string command = d_binPath;
   command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
+  if (d_logProofs)
+  {
+    command += " --proof-log=" + d_proofPath;
+  }
   command += " " + d_pboPath + " > " + output_file;
   Trace("bv-pb-roundingsat") << "    The command is: " << command << "\n";
 
@@ -158,7 +165,7 @@ PbSolveState RoundingSatSolver::solve()
   Trace("bv-pb-roundingsat") << "    RoundingSat result:\n";
   std::string line;
   std::string result;
-  while (getline (output,line))
+  while (getline(output,line))
   {
     Trace("bv-pb-roundingsat") << "        " << line << '\n';
     if (line[0] == 's')
@@ -173,6 +180,16 @@ PbSolveState RoundingSatSolver::solve()
 //  d_variableSet.clear();
 //  d_opbConstraints.clear();
   output.close();
+
+  if (d_logProofs && TraceIsOn("bv-pb-proof"))
+  {
+    std::fstream proof_stream;
+    proof_stream.open(d_proofPath + ".proof");
+    while (getline(proof_stream,line))
+    {
+      Trace("bv-pb-proof") << line << '\n';
+    }
+  }
 
   if (result == "SATISFIABLE") {
     computeSatisfyingAssignment();

@@ -158,7 +158,8 @@ void BVSolverPseudoBoolean::initPbSolver()
             ROUNDINGSAT_PATH,
             d_env,
             statisticsRegistry(),
-            "theory::bv::BVSolverPseudoBoolean::"));
+            "theory::bv::BVSolverPseudoBoolean::",
+            TraceIsOn("bv-pb-proof")));
         Trace("bv-pb") << "Initialization successful.\n";
       #endif
       break;
