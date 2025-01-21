@@ -2,10 +2,23 @@
 
 CVC5_BIN="/home/alan/logic/cvc5/build/bin/cvc5"
 
-dir_path="$(pwd)/implemented"
+implemented_dir="$(pwd)/implemented"
+unimplemented_dir="$(pwd)/unimplemented"
+new_dir="$(pwd)/new"
+
+# for FILE in "$unimplemented_dir"/*; do
+#     echo "$FILE"
+#     timeout 20s "$CVC5_BIN" "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat
+#     exit_code=$?
+#     if [ $exit_code -eq 0 ]; then
+#         mv "$FILE" "$new_dir"
+#         echo "Moved $FILE to $new_dir"
+#     fi
+# done
 
 # Sanity check
-for FILE in "$dir_path"/*; do
+for FILE in "$implemented_dir"/*; do
+    echo "$FILE"
     bb_result=$("$CVC5_BIN" "$FILE")
     pb_result=$("$CVC5_BIN" "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat)
 
@@ -14,7 +27,6 @@ if [ "$bb_result" != "$pb_result" ]; then
     echo "BB and PB results are different for file $FILE"
         exit 1
     fi
-
 done
 
 get_time() {
@@ -38,7 +50,7 @@ get_time() {
 # Compare approaches
 bb_times=()
 pb_times=()
-for FILE in "$dir_path"/*; do
+for FILE in "$implemented_dir"/*; do
     bb_result=$( { time $CVC5_BIN "$FILE"; } 2>&1 )
     pb_result=$( { time $CVC5_BIN "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
     bb_times+=("$(get_time "$bb_result"),")
@@ -48,13 +60,3 @@ done
 echo "bb_result = [${bb_times[@]}]"
 echo "pb_result = [${pb_times[@]}]"
 
-
-
-
-#    if [ $exit_code -eq 0 ]; then
-#        mv "$FILE" "$implemented_dir"
-#        echo "Moved $FILE to $implemented_dir"
-#    else
-#        mv "$FILE" "$unimplemented_dir"
-#        echo "Moved $FILE to $unimplemented_dir"
-#    fi
