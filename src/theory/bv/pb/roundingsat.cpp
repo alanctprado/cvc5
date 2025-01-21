@@ -55,7 +55,6 @@ void RoundingSatSolver::init()
   d_pboPath = std::tmpnam(nullptr);
   d_pboPath += ".opb";
   (void) std::ofstream(d_pboPath, std::ostream::app);
-  d_pboFile.open(d_pboPath);
 }
 
 void RoundingSatSolver::addVariable(const Node variable)
@@ -122,6 +121,7 @@ void RoundingSatSolver::addConstraint(const Node constraint)
 PbSolveState RoundingSatSolver::solve()
 {
   Trace("bv-pb-roundingsat") << "RoundingSatSolver::solve\n";
+  d_pboFile.open(d_pboPath);
   d_pboFile << "* #variable= " << d_variableSet.size() << " #constraint= "
             << d_opbConstraints.size() << "\n";
   for (std::string constraint : d_opbConstraints)
@@ -166,6 +166,12 @@ PbSolveState RoundingSatSolver::solve()
       result = line.substr(2, line.length() - 2);
     }
   }
+//  TODO(alanctprado): this should be done at some point. Need to understand
+//  better how this works. Performing the "clears" below breaks cases that are
+//  working.
+//  d_constraintSet.clear();
+//  d_variableSet.clear();
+//  d_opbConstraints.clear();
   output.close();
 
   if (result == "SATISFIABLE") {

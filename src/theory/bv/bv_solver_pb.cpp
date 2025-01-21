@@ -73,6 +73,7 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   }
   else
     Unreachable();
+  Trace("bv-pb") << "\n";
 }
 
 bool BVSolverPseudoBoolean::preNotifyFact(
@@ -187,10 +188,18 @@ std::string BVSolverPseudoBoolean::getTermVariables(TNode term)
 
 void BVSolverPseudoBoolean::debugSatisfiedAtom(TNode atom)
 {
-  Trace("bv-pb-debug") << "\nStarting debugging...\n\n";
-  Trace("bv-pb-debug") << atom << "\n";
-  Node lhs = atom[0];
-  Node rhs = atom[1];
+  Node lhs, rhs;
+  if (atom.getKind() == Kind::NOT)
+  {
+    lhs = atom[0][0];
+    rhs = atom[0][1];
+  }
+  else
+  {
+  lhs = atom[0];
+  rhs = atom[1];
+  }
+  Trace("bv-pb-debug") << "\nDebugging atom " << atom << "\n";
   Trace("bv-pb-debug") << "KIND: " << atom.getKind() << "\n";
   Trace("bv-pb-debug") << "LHS: " << lhs << "\n";
   Trace("bv-pb-debug") << "LHS VARS: " << getTermVariables(lhs) << "\n";
@@ -198,6 +207,7 @@ void BVSolverPseudoBoolean::debugSatisfiedAtom(TNode atom)
   Trace("bv-pb-debug") << "RHS VARS: " << getTermVariables(rhs) << "\n";
   debugSatisfiedTerm(lhs);
   debugSatisfiedTerm(rhs);
+  Trace("bv-pb-debug") << "\n";
 }
 
 void BVSolverPseudoBoolean::debugSatisfiedTerm(TNode term)
