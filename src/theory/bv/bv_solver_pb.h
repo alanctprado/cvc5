@@ -91,6 +91,12 @@ class BVSolverPseudoBoolean : public BVSolver
    * Gets populated on preNotifyFact().
    */
   context::CDQueue<Node> d_facts;
+  /**
+   * PB-blast list for facts sent to this solver.
+   * Used as input for the PB Solver.
+   * Gets populated on postCheck().
+   */
+  context::CDList<Node> d_assumptions;
 
   /** Debugging */
   std::string getTermVariables(TNode term);

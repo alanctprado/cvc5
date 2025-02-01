@@ -31,7 +31,8 @@ BVSolverPseudoBoolean::BVSolverPseudoBoolean(Env& env,
                                              TheoryInferenceManager& inferMgr)
     : BVSolver(env, *s, inferMgr),
       d_pbBlaster(new PseudoBooleanBlaster(env, s)),
-      d_facts(context())
+      d_facts(context()),
+      d_assumptions(context())
 {
   initPbSolver();
 }
@@ -55,12 +56,20 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
     d_facts.pop();
     if (fact.getKind() == Kind::BITVECTOR_EAGER_ATOM) Unhandled();
     d_pbBlaster->blastAtom(fact);
-    for (const Node& constraint : d_pbBlaster->getAtom(fact))
-      d_pbSolver->addConstraint(constraint);
+    d_assumptions.push_back(fact);
     blasted_atoms.push_back(fact);
   }
 
+  d_pbSolver->reset();
+  Trace("bv-postcheck") << "Post Check\n";
+  for (const Node& fact : d_assumptions) {
+    Trace("bv-postcheck") << fact << "\n";
+    for (const Node& constraint : d_pbBlaster->getAtom(fact)) {
+      d_pbSolver->addConstraint(constraint);
+    }
+  }
   PbSolveState s = d_pbSolver->solve();
+
   if (s == PbSolveState::PB_UNSAT)
   {
     NodeManager* nm = nodeManager();
@@ -69,7 +78,7 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
   }
   else if (s == PbSolveState::PB_SAT) {
     Trace("bv-pb") << "SATISFIABLE\n";
-    for (const auto& atom : blasted_atoms) debugSatisfiedAtom(atom);
+    // for (const auto& atom : blasted_atoms) debugSatisfiedAtom(atom);
   }
   else
     Unreachable();

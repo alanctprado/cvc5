@@ -44,21 +44,7 @@ RoundingSatSolver::RoundingSatSolver(std::string solverPath,
       d_binPath(solverPath),
       d_logProofs(logProofs),
       d_statistics(registry, name)
-{
-  init();  // TODO: Remove this? Make a private constructor?
-}
-
-void RoundingSatSolver::init()
-{
-  Trace("bv-pb-roundingsat") << "RoundingSatSolver::init\n";
-  d_pboPath = std::tmpnam(nullptr);
-  d_pboPath += ".opb";
-  if (d_logProofs)
-  {
-    d_proofPath = std::tmpnam(nullptr);
-  }
-  (void) std::ofstream(d_pboPath, std::ostream::app);
-}
+{}
 
 void RoundingSatSolver::addVariable(const Node variable)
 {
@@ -117,129 +103,152 @@ void RoundingSatSolver::addConstraint(const Node constraint)
   result += ";\n";
 
   // TODO: ++d_statistics.d_numConstraints;
-  d_opbConstraints.push_back(result);
-  Trace("bv-pb-roundingsat") << "    produces " << result;
+  d_pboConstraints.push_back(result);
+  Trace("bv-pb-roundingsat") << "results in " << result;
 }
 
-PbSolveState RoundingSatSolver::solve()
+void RoundingSatSolver::writeInput(std::string path)
 {
-  Trace("bv-pb-roundingsat") << "RoundingSatSolver::solve\n";
-  d_pboFile.open(d_pboPath);
-  d_pboFile << "* #variable= " << d_variableSet.size() << " #constraint= "
-            << d_opbConstraints.size() << "\n";
-  for (std::string constraint : d_opbConstraints)
+  std::ofstream file(path);
+  file << "* #variable= " << d_variableSet.size() << " #constraint= "
+       << d_pboConstraints.size() << "\n";
+  for (std::string constraint : d_pboConstraints)
   {
-    d_pboFile << constraint;
+    file << constraint;
   }
-  d_pboFile.close();
+  file.close();
 
-  if (TraceIsOn("bv-pb-roundingsat"))
+  if (TraceIsOn("bv-pb-rs-input"))
   {
-    d_pboFile.open(d_pboPath);
-    Trace("bv-pb-roundingsat")
-      << "    Contents of the file " << d_pboPath << " are:\n";
-    d_pboFile.seekg(0);
+    std::ifstream ifile(path);
+    Trace("bv-pb-rs-input") << "Contents of the file " << path << " are:\n";
+    ifile.seekg(0);
     std::string line;
-    while ( getline (d_pboFile,line) )
+    while (getline (ifile, line))
     {
-      Trace("bv-pb-roundingsat") << "        " << line << '\n';
+      Trace("bv-pb-rs-input") << line << '\n';
     }
-    d_pboFile.close();
+    ifile.close();
   }
+}
 
-  std::string output_file = std::tmpnam(nullptr);
-  output_file += ".txt";
+std::string RoundingSatSolver::buildCliCommand(std::string input_path,
+                                               std::string output_path,
+                                               std::string proof_path)
+{
   std::string command = d_binPath;
   command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
   if (d_logProofs)
   {
-    command += " --proof-log=" + d_proofPath;
+    command += " --proof-log=" + proof_path;
   }
-  command += " " + d_pboPath + " > " + output_file;
-  Trace("bv-pb-roundingsat") << "    The command is: " << command << "\n";
+  command += " " + input_path + " > " + output_path;
+  Trace("bv-pb-roundingsat") << "Built command: " << command << "\n";
+  return command;
+}
 
-  std::system(command.c_str());
+void RoundingSatSolver::reset()
+{
+  d_constraintSet.clear();
+  d_variableSet.clear();
+  d_pboConstraints.clear();
+}
 
-  std::fstream output;
-  output.open(output_file);
-  Trace("bv-pb-roundingsat") << "    RoundingSat result:\n";
-  std::string line;
-  std::string result;
+PbSolveState RoundingSatSolver::parseOutput(std::string output_path)
+{
+  std::ifstream output(output_path);
+  std::string line, result;
+  Trace("bv-pb-rs-output") << "RoundingSat result:\n";
   while (getline(output,line))
   {
-    Trace("bv-pb-roundingsat") << "        " << line << '\n';
+    Trace("bv-pb-rs-output") << line << '\n';
     if (line[0] == 's')
     {
       result = line.substr(2, line.length() - 2);
     }
   }
-//  TODO(alanctprado): this should be done at some point. Need to understand
-//  better how this works. Performing the "clears" below breaks cases that are
-//  working.
-//  d_constraintSet.clear();
-//  d_variableSet.clear();
-//  d_opbConstraints.clear();
   output.close();
-
-  if (d_logProofs && TraceIsOn("bv-pb-proof"))
+  if (result == "SATISFIABLE")
   {
-    std::fstream proof_stream;
-    proof_stream.open(d_proofPath + ".proof");
-    while (getline(proof_stream,line))
-    {
-      Trace("bv-pb-proof") << line << '\n';
-    }
-  }
-
-  if (result == "SATISFIABLE") {
-    computeSatisfyingAssignment();
+    // computeSatisfyingAssignment();
     return PB_SAT;
   }
   if (result == "UNSATISFIABLE") return PB_UNSAT;
   return PB_UNKNOWN;
 }
 
-void RoundingSatSolver::computeSatisfyingAssignment()
+void RoundingSatSolver::parseProof(std::string proof_path)
 {
-  std::string output_file = std::tmpnam(nullptr);
-  output_file += ".txt";
-  std::string command = d_binPath;
-  command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
-  command += " --print-sol=1";
-  command += " " + d_pboPath + " > " + output_file;
-  Trace("bv-pb-debug") << "    The command is: " << command << "\n";
+  if (TraceIsOn("bv-pb-proof"))
+  {
+    Trace("bv-pb-proof") << "RoundingSat proof:\n";
+    std::ifstream proof_file(proof_path + ".proof");
+    std::string line;
+    while (getline(proof_file, line))
+    {
+      Trace("bv-pb-proof") << line << '\n';
+    }
+  }
+}
+
+PbSolveState RoundingSatSolver::solve()
+{
+  std::string input_path = std::string(std::tmpnam(nullptr)) + ".pbo";
+  std::string output_path = std::string(std::tmpnam(nullptr)) + "txt";
+  std::string proof_path = std::string(std::tmpnam(nullptr));
+
+  writeInput(input_path);
+  std::string command = buildCliCommand(input_path, output_path, proof_path);
 
   std::system(command.c_str());
 
-  std::fstream output;
-  output.open(output_file);
-  Trace("bv-pb-debug") << "RoundingSat result:\n";
-  std::string line;
-  std::string result;
-  std::string assignment;
-  while (getline (output,line))
-  {
-    // Trace("bv-pb-debug") << line << '\n';
-    if (line[0] == 's') result = line.substr(2, line.length() - 2);
-    if (line[0] == 'v') assignment = line.substr(2, line.length() - 2);
-  }
-  output.close();
-  Assert(result == "SATISFIABLE");
-  Trace("bv-pb-debug") << "Assignment:\n";
-  Trace("bv-pb-debug") << assignment;
+  if (d_logProofs) parseProof(proof_path);
 
-  std::vector<std::string> variables;
-  std::stringstream ss(assignment);
-  std::string var;
-  while (ss >> var) variables.push_back(var);
+  return parseOutput(output_path);
+}
 
-  d_assignmentMap.clear();
-  for (const auto& variable : variables) {
-    int value = (variable[0] == '-') ? 0 : 1;
-    VariableId variable_id = variable.substr(1 - value);
-    d_assignmentMap[variable_id] = (value == 0) ? PB_FALSE : PB_TRUE;
-    Trace("bv-pb-debug") << variable << " = " << d_assignmentMap[variable_id] << "\n";
-  }
+void RoundingSatSolver::computeSatisfyingAssignment()
+{
+  Unimplemented();
+  // std::string output_file = std::tmpnam(nullptr);
+  // output_file += ".txt";
+  // std::string command = d_binPath;
+  // command += " --bits-learned=0 --bits-overflow=0 --bits-reduced=0 --lp=0";
+  // command += " --print-sol=1";
+  // command += " " + d_pboPath + " > " + output_file;
+  // Trace("bv-pb-debug") << "    The command is: " << command << "\n";
+
+  // std::system(command.c_str());
+
+  // std::fstream output;
+  // output.open(output_file);
+  // Trace("bv-pb-debug") << "RoundingSat result:\n";
+  // std::string line;
+  // std::string result;
+  // std::string assignment;
+  // while (getline (output,line))
+  // {
+  //   // Trace("bv-pb-debug") << line << '\n';
+  //   if (line[0] == 's') result = line.substr(2, line.length() - 2);
+  //   if (line[0] == 'v') assignment = line.substr(2, line.length() - 2);
+  // }
+  // output.close();
+  // Assert(result == "SATISFIABLE");
+  // Trace("bv-pb-debug") << "Assignment:\n";
+  // Trace("bv-pb-debug") << assignment;
+
+  // std::vector<std::string> variables;
+  // std::stringstream ss(assignment);
+  // std::string var;
+  // while (ss >> var) variables.push_back(var);
+
+  // d_assignmentMap.clear();
+  // for (const auto& variable : variables) {
+  //   int value = (variable[0] == '-') ? 0 : 1;
+  //   VariableId variable_id = variable.substr(1 - value);
+  //   d_assignmentMap[variable_id] = (value == 0) ? PB_FALSE : PB_TRUE;
+  //   Trace("bv-pb-debug") << variable << " = " << d_assignmentMap[variable_id] << "\n";
+  // }
 }
 
 PbValue RoundingSatSolver::modelValue(const VariableId variable)
