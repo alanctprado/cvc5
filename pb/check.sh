@@ -48,15 +48,15 @@ get_time() {
 }
 
 # Compare approaches
-bb_times=()
-pb_times=()
-for FILE in "$implemented_dir"/*; do
-    bb_result=$( { time $CVC5_BIN "$FILE"; } 2>&1 )
-    pb_result=$( { time $CVC5_BIN "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
-    bb_times+=("$(get_time "$bb_result"),")
-    pb_times+=("$(get_time "$pb_result"),")
-done
-
-echo "bb_result = [${bb_times[@]}]"
-echo "pb_result = [${pb_times[@]}]"
+# bb_times=()
+# pb_times=()
+# for FILE in "$implemented_dir"/*; do
+#     bb_result=$( { time $CVC5_BIN "$FILE"; } 2>&1 )
+#     pb_result=$( { time $CVC5_BIN "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
+#     bb_times+=("$(get_time "$bb_result"),")
+#     pb_times+=("$(get_time "$pb_result"),")
+# done
+# 
+# echo "bb_result = [${bb_times[@]}]"
+# echo "pb_result = [${pb_times[@]}]"
 

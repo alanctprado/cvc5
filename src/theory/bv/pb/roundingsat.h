@@ -41,6 +41,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   void addVariable(const Node variable) override;
   PbSolveState solve() override;
   PbValue modelValue(const VariableId variable) override;
+  void reset() override;
 
 // private:   TODO: should the constructor be private (factory)?
   /**
@@ -58,13 +59,12 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
                     const std::string& name = "",
                     bool logProofs = false);
  private:
-  /**
-   * Initialize PB solver instance.
-   * Note: Split out to not call virtual functions in constructor.
-   */
-  void init();
-
+  std::string buildCliCommand(std::string input_path, std::string output_path,
+                                std::string proof_path);
   void computeSatisfyingAssignment();
+  PbSolveState parseOutput(std::string output_path);
+  void parseProof(std::string proof_path);
+  void writeInput(std::string input_path);
 
   std::string d_binPath;
 
@@ -85,12 +85,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   std::unordered_set<Node> d_constraintSet;
 
   /** TODO(alanctprado) */
-  std::vector<std::string> d_opbConstraints;
-
-  /** Tmp File */
-  std::fstream d_pboFile;
-  std::string d_pboPath;
-  std::string d_proofPath;
+  std::vector<std::string> d_pboConstraints;
 
   /** Assignment map */
   std::unordered_map<VariableId, PbValue> d_assignmentMap;

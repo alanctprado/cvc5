@@ -36,8 +36,10 @@ public:
   virtual void addConstraint(const T constraint) = 0;
   /** Check the satisfiability of the added clauses */
   virtual PbSolveState solve() = 0;
-  /** Call modelValue() when the search is done.*/
+  /** Call modelValue() when the search is done. */
   virtual PbValue modelValue(const VariableId variable) = 0;
+  /** Reset solver. */
+  virtual void reset() = 0;
 
  private:
   void init();
