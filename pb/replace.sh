@@ -47,7 +47,9 @@ for ((i = 2; i <= 16; i += 2)); do
 	pb_result=$( { time $CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
 	pb_proof=$($CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat -t "bv-pb-proof")
 	# bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-mode=sat-proof)
-	# bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite)
+	bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite)
+
+	echo "$bb_proof" | wc -l
 
 	if [ "$(echo "$bb_result" | head -n1)" != "$(echo "$pb_result" | head -n1)" ]; then
 		echo "ERROR!!"
