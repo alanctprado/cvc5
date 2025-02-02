@@ -6,15 +6,15 @@ implemented_dir="$(pwd)/implemented"
 unimplemented_dir="$(pwd)/unimplemented"
 new_dir="$(pwd)/new"
 
-# for FILE in "$unimplemented_dir"/*; do
-#     echo "$FILE"
-#     timeout 20s "$CVC5_BIN" "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat
-#     exit_code=$?
-#     if [ $exit_code -eq 0 ]; then
-#         mv "$FILE" "$new_dir"
-#         echo "Moved $FILE to $new_dir"
-#     fi
-# done
+#for FILE in "$unimplemented_dir"/*; do
+#    echo "$FILE"
+#    timeout 60s "$CVC5_BIN" "$FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat
+#    exit_code=$?
+#    if [ $exit_code -eq 0 ]; then
+#        mv "$FILE" "$new_dir"
+#        echo "Moved $FILE to $new_dir"
+#    fi
+#done
 
 # Sanity check
 for FILE in "$implemented_dir"/*; do
