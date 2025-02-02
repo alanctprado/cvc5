@@ -35,9 +35,7 @@ pb_times=()
 pb_proof_lines=()
 pb_proof_chars=()
 bb_proof_chars=()
-for ((i = 2; i <= 16; i += 2)); do
-#for ((i = 2; i <= 8; i += 2)); do
-#for ((i = 1; i <= 2; i += 1)); do
+for ((i = 1; i <= 6; i += 1)); do
 #	sed "s/SIZE/$i/" "$file_path" > test_file.smt2
     echo $i
 	repeat=$(printf '10%.0s' $(seq 1 $((i / 2))))
@@ -45,24 +43,24 @@ for ((i = 2; i <= 16; i += 2)); do
 
 	bb_result=$( { time $CVC5_BIN "$TEST_FILE"; } 2>&1 )
 	pb_result=$( { time $CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
-	pb_proof=$($CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat -t "bv-pb-proof")
+	# pb_proof=$($CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat -t "bv-pb-proof")
 	# bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-mode=sat-proof)
-	bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite)
+	# bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-granularity=theory-rewrite)
 
-	echo "$bb_proof" | wc -l
+	# echo "$bb_proof" | wc -l
 
 	if [ "$(echo "$bb_result" | head -n1)" != "$(echo "$pb_result" | head -n1)" ]; then
-		echo "ERROR!!"
-		echo "BB and PB results are different for bit-width $i"
-		exit 1
+	      echo "ERROR!!"
+	      echo "BB and PB results are different for bit-width $i"
+	      exit 1
 	fi
 
 	bb_times+=("($i, $(get_time "$bb_result")),")
 	pb_times+=("($i, $(get_time "$pb_result")),")
 
-	pb_proof_lines+=("$(echo "$pb_proof" | wc -l),")
-	pb_proof_chars+=("$(echo "$pb_proof" | wc -c),")
-	bb_proof_chars+=("$(echo "$bb_proof" | wc -c),")
+	# pb_proof_lines+=("$(echo "$pb_proof" | wc -l),")
+	# pb_proof_chars+=("$(echo "$pb_proof" | wc -c),")
+	# bb_proof_chars+=("$(echo "$bb_proof" | wc -c),")
 
 	rm "$TEST_FILE"
 done
