@@ -196,13 +196,15 @@ inline std::vector<T> mkPbXor(T a, T b, T res, NodeManager* nm)
 template <class T>
 inline std::vector<T> bvToSigned(unsigned size, NodeManager* nm, int sign)
 {
+  Assert(size > 0);
   std::ostringstream os;
-  int coeff = sign;
-  std::vector<T> coefficients(size);
-  std::generate(coefficients.begin(), coefficients.end() - 1, [&coeff, nm] {
-    return nm->mkConstInt(Rational((coeff *= 2) / 2));
-  });
-  coefficients[size - 1] = nm->mkConstInt(Rational(-1 * (coeff *= 2) / 2));
+  std::vector<T> coefficients;
+  for (int i = 0; i < ((int) size) - 1; i++) {
+    coefficients.push_back(
+      nm->mkConstInt(Rational(Integer(sign).multiplyByPow2(i))));
+  }
+  coefficients.push_back(
+    nm->mkConstInt(Rational(Integer(-sign).multiplyByPow2(((int) size) - 1))));
   return coefficients;
 }
 
@@ -210,11 +212,11 @@ template <class T>
 inline std::vector<T> bvToUnsigned(unsigned size, NodeManager* nm, int sign)
 {
   std::ostringstream os;
-  int coeff = sign;
-  std::vector<T> coefficients(size);
-  std::generate(coefficients.begin(), coefficients.end(), [&coeff, nm] {
-    return nm->mkConstInt(Rational((coeff *= 2) / 2));
-  });
+  std::vector<T> coefficients;
+  for (int i = 0; i < (int) size; i++) {
+    coefficients.push_back(
+      nm->mkConstInt(Rational(Integer(sign).multiplyByPow2(i))));
+  }
   return coefficients;
 }
 
