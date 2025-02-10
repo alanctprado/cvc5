@@ -24,6 +24,8 @@
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/pb/pb_solver.h"
 #include "theory/bv/pb/pb_node_blaster.h"
+#include "theory/bv/pb/pb_blast_proof_generator.h"
+#include "theory/bv/pb/pb_proof_manager.h"
 
 namespace cvc5::internal {
 
@@ -102,6 +104,12 @@ class BVSolverPseudoBoolean : public BVSolver
   std::string getTermVariables(TNode term);
   void debugSatisfiedAtom(TNode atom);
   void debugSatisfiedTerm(TNode term);
+
+  /** Proof logging */
+  bool d_isProofProducing;
+  // TODO(alanctprado): improve the names below
+  PbBlastProofGenerator* d_pbbpg;
+  PbProofManager* d_pbpm;
 };
 
 }  // namespace pb

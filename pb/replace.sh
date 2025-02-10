@@ -35,13 +35,14 @@ pb_times=()
 pb_proof_lines=()
 pb_proof_chars=()
 bb_proof_chars=()
-for ((i = 1; i <= 6; i += 1)); do
+for ((i = 2; i <= 32; i += 2)); do
 #	sed "s/SIZE/$i/" "$file_path" > test_file.smt2
     echo $i
 	repeat=$(printf '10%.0s' $(seq 1 $((i / 2))))
 	sed "s/SIZE/$i/" "$file_path" | sed "s/DOUBLE/$((i * 2))/" | sed "s/CONSTANT/$repeat/" > "$TEST_FILE"
 
-	bb_result=$( { time $CVC5_BIN "$TEST_FILE"; } 2>&1 )
+	# bb_result=$( { time $CVC5_BIN "$TEST_FILE"; } 2>&1 )
+	bb_result=$( { time echo "unsat"; } 2>&1 )
 	pb_result=$( { time $CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat; } 2>&1 )
 	# pb_proof=$($CVC5_BIN "$TEST_FILE" --bv-solver=pb-blast --bv-pb-solver=roundingsat -t "bv-pb-proof")
 	# bb_proof=$($CVC5_BIN "$TEST_FILE" --dump-proofs --simplification=none --dag-thresh=0 --proof-mode=sat-proof)
