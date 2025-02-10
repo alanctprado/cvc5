@@ -19,6 +19,8 @@
 #define CVC5__THEORY__BV__PB__PB_SOLVER_H
 
 #include "theory/bv/pb/pb_solver_types.h"
+#include <vector>
+#include <string>
 
 namespace cvc5::internal {
 namespace theory {
@@ -40,6 +42,8 @@ public:
   virtual PbValue modelValue(const VariableId variable) = 0;
   /** Reset solver. */
   virtual void reset() = 0;
+  /** Get proof lines. */
+  virtual std::vector<std::string> getProof() = 0;
 
  private:
   void init();
