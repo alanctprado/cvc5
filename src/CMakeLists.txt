@@ -658,11 +658,15 @@ libcvc5_add_sources(
   theory/bv/pb/pb_solver.h
   theory/bv/pb/exact.cpp
   theory/bv/pb/exact.h
+  theory/bv/pb/pb_blast_proof_generator.cpp
+  theory/bv/pb/pb_blast_proof_generator.h
   theory/bv/pb/pb_blaster.h
   theory/bv/pb/pb_blast_utils.h
   theory/bv/pb/pb_blast_strategies_template.h
   theory/bv/pb/pb_node_blaster.cpp
   theory/bv/pb/pb_node_blaster.h
+  theory/bv/pb/pb_proof_manager.cpp
+  theory/bv/pb/pb_proof_manager.h
   theory/bv/pb/roundingsat.cpp
   theory/bv/pb/roundingsat.h
   theory/bv/proof_checker.cpp

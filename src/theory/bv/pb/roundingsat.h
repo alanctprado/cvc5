@@ -42,6 +42,7 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
   PbSolveState solve() override;
   PbValue modelValue(const VariableId variable) override;
   void reset() override;
+  std::vector<std::string> getProof() override;
 
 // private:   TODO: should the constructor be private (factory)?
   /**
@@ -86,6 +87,9 @@ class RoundingSatSolver : public PseudoBooleanSolver<Node>, protected EnvObj
 
   /** TODO(alanctprado) */
   std::vector<std::string> d_pboConstraints;
+
+  /** TODO(alanctprado) */
+  std::vector<std::string> d_proofLines;
 
   /** Assignment map */
   std::unordered_map<VariableId, PbValue> d_assignmentMap;

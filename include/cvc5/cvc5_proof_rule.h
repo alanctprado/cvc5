@@ -446,6 +446,10 @@ enum ENUM(ProofRule)
    * literal eliminated.
    * \endverbatim
    */
+  EVALUE(CUTTING_PLANES_REFUTATION),
+  /**
+   * TODO(alanctprado)
+   */
   EVALUE(RESOLUTION),
   /**
    * \verbatim embed:rst:leading-asterisk

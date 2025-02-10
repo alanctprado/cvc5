@@ -181,14 +181,19 @@ void RoundingSatSolver::parseProof(std::string proof_path)
 {
   if (TraceIsOn("bv-pb-proof"))
   {
-    Trace("bv-pb-proof") << "RoundingSat proof:\n";
+    d_proofLines.clear();
     std::ifstream proof_file(proof_path + ".proof");
     std::string line;
     while (getline(proof_file, line))
     {
-      Trace("bv-pb-proof") << line << '\n';
+      d_proofLines.push_back(line);
     }
   }
+}
+
+std::vector<std::string> RoundingSatSolver::getProof()
+{
+  return d_proofLines;
 }
 
 PbSolveState RoundingSatSolver::solve()

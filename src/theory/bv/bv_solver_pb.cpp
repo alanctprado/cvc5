@@ -32,9 +32,17 @@ BVSolverPseudoBoolean::BVSolverPseudoBoolean(Env& env,
     : BVSolver(env, *s, inferMgr),
       d_pbBlaster(new PseudoBooleanBlaster(env, s)),
       d_facts(context()),
-      d_assumptions(context())
+      d_assumptions(context()),
+      d_isProofProducing(TraceIsOn("bv-pb-proof")),
+      d_pbbpg(nullptr),
+      d_pbpm(nullptr)
 {
   initPbSolver();
+  if (d_isProofProducing)
+  {
+    d_pbbpg = new PbBlastProofGenerator(env);
+    d_pbpm = new PbProofManager(env, d_pbbpg);
+  }
 }
 
 /** TODO(alanctprado): Used in BVSolverBitblast. Not sure we need it. */
@@ -72,6 +80,11 @@ void BVSolverPseudoBoolean::postCheck(Theory::Effort level)
 
   if (s == PbSolveState::PB_UNSAT)
   {
+    if (d_isProofProducing)
+    {
+      std::vector<std::string> proof = d_pbSolver->getProof();
+      d_pbpm->addPbProof(proof);
+    }
     NodeManager* nm = nodeManager();
     Node conflict = nm->mkAnd(blasted_atoms);
     d_im.conflict(conflict, InferenceId::BV_PB_BLAST_CONFLICT);
@@ -168,7 +181,7 @@ void BVSolverPseudoBoolean::initPbSolver()
             d_env,
             statisticsRegistry(),
             "theory::bv::BVSolverPseudoBoolean::",
-            TraceIsOn("bv-pb-proof")));
+            d_isProofProducing));
         Trace("bv-pb") << "Initialization successful.\n";
       #endif
       break;
