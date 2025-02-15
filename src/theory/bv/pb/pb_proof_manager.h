@@ -23,6 +23,7 @@
 
 #include "smt/env_obj.h"
 #include "theory/bv/pb/pb_blast_proof_generator.h"
+#include "theory/bv/pb/pb_proof_rules.h"
 
 namespace cvc5::internal {
 
@@ -40,8 +41,9 @@ class PbProofManager : protected EnvObj
 
  private:
   PbBlastProofGenerator* d_pbbpg;
+  PbProofRules* d_pbpr;
   CDProof* d_proof;
-  Node processProofStep(std::string);
+  std::vector<Node> parseProofLines(std::vector<std::string> proofLines);
 };
 
 }  // namespace pb
