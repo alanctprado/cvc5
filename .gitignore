@@ -16,5 +16,6 @@ generated/
 .vscode
 *.pyc
 .cache
+/pb
 **/venv
 **/.ipynb_checkpoints

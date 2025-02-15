@@ -675,6 +675,8 @@ libcvc5_add_sources(
   theory/bv/pb/pb_node_blaster.h
   theory/bv/pb/pb_proof_manager.cpp
   theory/bv/pb/pb_proof_manager.h
+  theory/bv/pb/pb_proof_rules.cpp
+  theory/bv/pb/pb_proof_rules.h
   theory/bv/pb/roundingsat.cpp
   theory/bv/pb/roundingsat.h
   theory/bv/proof_checker.cpp

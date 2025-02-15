@@ -23,27 +23,35 @@ namespace bv {
 namespace pb{
 
 PbProofManager::PbProofManager(Env& env, PbBlastProofGenerator* pbbpg)
-    : EnvObj(env), d_pbbpg(pbbpg), d_proof(new CDProof(env))
+    : EnvObj(env),
+      d_pbbpg(pbbpg),
+      d_pbpr(new PbProofRules(env)),
+      d_proof(new CDProof(env))
 {}
 
 void PbProofManager::addPbProof(std::vector<std::string> proofLines)
 {
   NodeManager* nm = NodeManager::currentNM();
 
-  std::vector<Node> cutting_plane_steps;
-  for (auto& line : proofLines)
+  if (proofLines[0] == "pseudo-Boolean proof version 1.0" ||
+      proofLines[0] == "pseudo-Boolean proof version 2.0")
   {
-    Trace("bv-pb-proof") << line << "\n";
-    cutting_plane_steps.push_back(processProofStep(line));
+    proofLines.erase(proofLines.begin());
+    std::vector<Node> proof_steps = parseProofLines(proofLines);
+  }
+  else
+  {
+    Unreachable() << "\nPbProofManager::addPbProof: cvc5 currently supports"
+                  <<  " only pseudo-Boolean proof versions 1.0 and 2.0";
   }
 
   Node expected = nm->mkConst(false);
   std::vector<Node> children;
 
-  d_proof->addStep(expected,
-                   ProofRule::CUTTING_PLANES_REFUTATION,
-                   children,
-                   cutting_plane_steps);
+  // d_proof->addStep(expected,
+  //                  ProofRule::CUTTING_PLANES_REFUTATION,
+  //                  children,
+  //                  cutting_plane_steps);
 
   // The step above generates the following error:
   //
@@ -53,10 +61,14 @@ void PbProofManager::addPbProof(std::vector<std::string> proofLines)
   // pnm != nullptr
 }
 
-Node PbProofManager::processProofStep(std::string step)
+std::vector<Node> PbProofManager::parseProofLines(std::vector<std::string> proofLines)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  return nm->mkConst(String(step));
+  std::vector<Node> cutting_plane_steps;
+  for (auto& line : proofLines)
+  {
+    cutting_plane_steps.push_back(d_pbpr->parseLine(line));
+  }
+  return cutting_plane_steps;
 }
 
 }  // namespace pb
