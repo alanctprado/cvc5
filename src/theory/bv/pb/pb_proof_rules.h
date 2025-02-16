@@ -35,27 +35,37 @@ class PbProofRules : protected EnvObj
 
  private:
   /** Rules */
-  Node assumption(const std::string& line);
-  Node constraintEquals(const std::string& line);
-  Node constraintImplies(const std::string& line);
-  Node constraintImpliesGetImplied(const std::string& line);
-  Node deleteConstraints(const std::string& line);
-  Node deleteConstraints2(const std::string& line);
-  Node isContradiction(const std::string& line);
-  Node loadAxiom(const std::string& line);
-  Node loadFormula(const std::string& line);
-  Node markCore(const std::string& line);
-  Node objectiveBound(const std::string& line);
-  Node originalSolution(const std::string& line);
-  Node reversePolishNotation(const std::string& line);
-  Node reverseUnitPropagation(const std::string& line);
-  Node setLevel(const std::string& line);
-  Node solution(const std::string& line);
-  Node wipeLevel(const std::string& line);
+  Node assumption(std::istringstream&);
+  Node constraintEquals(std::istringstream&);
+  Node constraintImplies(std::istringstream&);
+  Node constraintImpliesGetImplied(std::istringstream&);
+  Node deleteConstraints(std::istringstream&);
+  Node deleteConstraints2(std::istringstream&);
+  Node isContradiction(std::istringstream&);
+  Node loadAxiom(std::istringstream&);
+  Node loadFormula(std::istringstream&);
+  Node markCore(std::istringstream&);
+  Node objectiveBound(std::istringstream&);
+  Node originalSolution(std::istringstream&);
+  Node reversePolishNotation(std::istringstream&);
+  Node reverseUnitPropagation(std::istringstream&);
+  Node setLevel(std::istringstream&);
+  Node solution(std::istringstream&);
+  Node wipeLevel(std::istringstream&);
 
   /** Internal */
   void initializeRules();
-  std::unordered_map<std::string, std::function<Node(const std::string&)>> rules;
+  Node parseOpbFormat(std::istringstream&);
+
+  Node parsePolishNotation(std::istringstream&);
+  Node polishAddition(std::pair<Node, Node>);
+  Node polishDivision(std::pair<Node, Node>);
+  Node polishMultiplication(std::pair<Node, Node>);
+  Node polishSaturation(Node);
+  Node polishWeakening(std::pair<Node, Node>);
+  Node polishConstraint(Node);
+
+  std::unordered_map<std::string, std::function<Node(std::istringstream&)>> rules;
 };
 
 }  // namespace pb

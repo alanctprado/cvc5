@@ -61,12 +61,43 @@ void PbProofManager::addPbProof(std::vector<std::string> proofLines)
   // pnm != nullptr
 }
 
+void debugPbProofLine(const std::string& line, const std::vector<Node>& steps, bool foo = true)
+{
+  if (foo)
+  {
+    Trace("bv-pb-proof") << "Proof step: " << line << "\n";
+    Trace("bv-pb-proof") << "Result: " << steps.back() << "\n";
+    return;
+  }
+  if (line[0] == 'c')
+  {
+    Trace("bv-pb-proof-c") << "Proof step: " << line << "\n";
+    Trace("bv-pb-proof-c") << "Result: " << steps.back() << "\n";
+  }
+  else if (line[0] == 'l')
+  {
+    Trace("bv-pb-proof-l") << "Proof step: " << line << "\n";
+    Trace("bv-pb-proof-l") << "Result: " << steps.back() << "\n";
+  }
+  else if (line[0] == 'p')
+  {
+    Trace("bv-pb-proof-p") << "Proof step: " << line << "\n";
+    Trace("bv-pb-proof-p") << "Result: " << steps.back() << "\n";
+  }
+  else if (line[0] == 'u')
+  {
+    Trace("bv-pb-proof-u") << "Proof step: " << line << "\n";
+    Trace("bv-pb-proof-u") << "Result: " << steps.back() << "\n";
+  }
+}
+
 std::vector<Node> PbProofManager::parseProofLines(std::vector<std::string> proofLines)
 {
   std::vector<Node> cutting_plane_steps;
   for (auto& line : proofLines)
   {
     cutting_plane_steps.push_back(d_pbpr->parseLine(line));
+    debugPbProofLine(line, cutting_plane_steps);
   }
   return cutting_plane_steps;
 }
