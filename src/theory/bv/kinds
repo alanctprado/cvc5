@@ -113,6 +113,12 @@ operator BITVECTOR_ACKERMANNIZE_UDIV 1 "term to be treated as a variable; used f
 operator BITVECTOR_ACKERMANNIZE_UREM 1 "term to be treated as a variable; used for eager bit-blasting Ackermann expansion of bvurem (internal-only symbol)"
 operator BITVECTOR_EAGER_ATOM 1 "formula to be treated as a bv atom via eager bit-blasting (internal-only symbol)"
 
+## pb-blasting proof kinds
+operator PB_PROOF_CONTRADICTION 1 "TODO(alanctprado)"
+operator PB_PROOF_LOAD_AXIOM 1 "TODO(alanctprado)"
+operator PB_PROOF_REVERSE_POLISH_NOTATION 1 "TODO(alanctprado)"
+operator PB_PROOF_REVERSE_UNIT_PROPAGATION 1 "TODO(alanctprado)"
+
 ### parameterized operator kinds ----------------------------------------------
 
 constant BITVECTOR_BIT_OP \
