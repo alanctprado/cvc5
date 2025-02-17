@@ -177,6 +177,7 @@ Node PbProofRules::wipeLevel(std::istringstream& iss)
   Unimplemented();
 }
 
+// Based on http://www.cril.univ-artois.fr/PB12/format.pdf
 Node PbProofRules::parseOpbFormat(std::istringstream& iss)
 {
   Trace("bv-pb-proof") << "PbProofRules::parseOpbFormat\n";
@@ -243,6 +244,7 @@ Node PbProofRules::parseOpbFormat(std::istringstream& iss)
   return nm->mkNode(relational_operator, lhs_node, rhs_node);
 }
 
+// Based on https://github.com/StephanGocht/VeriPB?tab=readme-ov-file#reverse-polish-notation
 Node PbProofRules::parsePolishNotation(std::istringstream& iss)
 {
   Trace("bv-pb-proof") << "PbProofRules::parsePolishNotation\n";
