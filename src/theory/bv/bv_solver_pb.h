@@ -47,11 +47,16 @@ class BVSolverPseudoBoolean : public BVSolver
                         TheoryInferenceManager& inferMgr);
   ~BVSolverPseudoBoolean() = default;
 
-  /** TODO(alanctprado): document */
-  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /**
+   * Whether the theory needs an equality engine. In our case, not.
+   */
+  bool needsEqualityEngine(EeSetupInfo&) override;
 
-  /** TODO(alanctprado): document */
-  void preRegisterTerm(TNode n) override {}  // same as BVSolverBitblast
+  /**
+   * Not used by this decision procedure. Why is it an abstract function if
+   * BVSolverBitblast does not use it as well?
+   */
+  void preRegisterTerm(TNode) override {}  // same as BVSolverBitblast
 
   /** TODO(alanctprado): document */
   void postCheck(Theory::Effort level) override;
@@ -66,7 +71,7 @@ class BVSolverPseudoBoolean : public BVSolver
   /** TODO(alanctprado): document */
   TrustNode explain(TNode n) override;
 
-  /** TODO(alanctprado): document */
+  /** Solver identifier. For debugging purposes. */
   std::string identify() const override { return "BVSolverPseudoBoolean"; }
 
   /** TODO(alanctprado): document */

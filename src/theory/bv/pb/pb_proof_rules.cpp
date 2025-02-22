@@ -22,7 +22,7 @@ namespace theory {
 namespace bv {
 namespace pb{
 
-PbProofRules::PbProofRules(Env& env) : EnvObj(env)
+PbProofRules::PbProofRules(Env& env, CDProof* cdp) : EnvObj(env), d_cdp(cdp)
 {
   initializeRules();
 }
