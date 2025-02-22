@@ -41,8 +41,8 @@ class PbProofManager : protected EnvObj
 
  private:
   PbBlastProofGenerator* d_pbbpg;
+  CDProof* d_cdp;
   PbProofRules* d_pbpr;
-  CDProof* d_proof;
   std::vector<Node> parseProofLines(std::vector<std::string> proofLines);
 };
 

@@ -18,6 +18,7 @@
 #define CVC5__THEORY__BV__PB__PB_PROOF_RULES_H
 
 #include "smt/env_obj.h"
+#include "proof/proof.h"
 
 namespace cvc5::internal {
 
@@ -28,12 +29,14 @@ namespace pb {
 class PbProofRules : protected EnvObj
 {
  public:
-  PbProofRules(Env& env);
+  PbProofRules(Env& env, CDProof* cdp);
   ~PbProofRules(){};
 
   Node parseLine(const std::string& line);
 
  private:
+  CDProof* d_cdp;
+
   /** Rules */
   Node assumption(std::istringstream&);
   Node constraintEquals(std::istringstream&);

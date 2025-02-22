@@ -25,8 +25,8 @@ namespace pb{
 PbProofManager::PbProofManager(Env& env, PbBlastProofGenerator* pbbpg)
     : EnvObj(env),
       d_pbbpg(pbbpg),
-      d_pbpr(new PbProofRules(env)),
-      d_proof(new CDProof(env))
+      d_cdp(new CDProof(env)),
+      d_pbpr(new PbProofRules(env, d_cdp))
 {}
 
 void PbProofManager::addPbProof(std::vector<std::string> proofLines)
