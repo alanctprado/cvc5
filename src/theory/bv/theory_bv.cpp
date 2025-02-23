@@ -38,6 +38,7 @@ TheoryBV::TheoryBV(Env& env,
                    std::string name)
     : Theory(THEORY_BV, env, out, valuation, name),
       d_internal(nullptr),
+      d_ppAssert(env, valuation),
       d_rewriter(nodeManager()),
       d_state(env, valuation),
       d_im(env, *this, d_state, "theory::bv::"),
