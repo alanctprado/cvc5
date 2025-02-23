@@ -15,6 +15,8 @@
 
 #include "theory/bv/bv_solver_pb.h"
 
+#include "theory/theory_model.h"
+
 #include "options/bv_options.h"
 #include "theory/bv/theory_bv.h"
 
@@ -133,28 +135,66 @@ TrustNode BVSolverPseudoBoolean::explain(TNode n)
 /** TODO(alanctprado): Used in BVSolverBitblast. Not sure we need it. */
 void BVSolverPseudoBoolean::computeRelevantTerms(std::set<Node>& termSet)
 {
+  // if (options().bv.bitblastMode == options::BitblastMode::EAGER)
+  // {
+  //   d_bitblaster->computeRelevantTerms(termSet);
+  // }
    Unimplemented();
 }
 
-/**
- * TODO(alanctprado):
- * Used in BVSolverBitblast. Not sure we need it.
- * Why is cvc5's documentation so bad? :O :(
- */
 bool BVSolverPseudoBoolean::collectModelValues(TheoryModel* m,
                                                const std::set<Node>& termSet)
 {
-   Unimplemented();
+  for (const auto& term : termSet)
+  {
+    if (!d_pbBlaster->hasTerm(term)) continue;
+
+    Node variables = d_pbBlaster->getTerm(term);
+    Node const_value; // = d_pbSolver->modelValue(variables);
+    Assert(const_value.isNull() || const_value.isConst());
+    if (!const_value.isNull())
+    {
+      if (!m->assertEquality(term, const_value, true))
+      {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
-/**
- * TODO(alanctprado):
- * Used in BVSolverBitblast. Not sure we need it.
- * Why is cvc5's documentation so bad? :O :(
- */
 Node BVSolverPseudoBoolean::getValue(TNode node, bool initialize)
 {
-   Unimplemented();
+  if (node.isConst())
+  {
+    return node;
+  }
+
+  if (!d_pbBlaster->hasTerm(node))
+  {
+    return initialize ? utils::mkConst(utils::getSize(node), 0u) : Node();
+  }
+
+  // std::vector<Node> bits;
+  // d_bitblaster->getBBTerm(node, bits);
+  // Integer value(0), one(1), zero(0), bit;
+  // for (size_t i = 0, size = bits.size(), j = size - 1; i < size; ++i, --j)
+  // {
+  //   if (d_cnfStream->hasLiteral(bits[j]))
+  //   {
+  //     prop::SatLiteral lit = d_cnfStream->getLiteral(bits[j]);
+  //     prop::SatValue val = d_satSolver->modelValue(lit);
+  //     bit = val == prop::SatValue::SAT_VALUE_TRUE ? one : zero;
+  //   }
+  //   else
+  //   {
+  //     if (!initialize) return Node();
+  //     bit = zero;
+  //   }
+  //   value = value * 2 + bit;
+  // }
+  // return utils::mkConst(bits.size(), value);
+  Unimplemented();
 }
 
 void BVSolverPseudoBoolean::initPbSolver()
