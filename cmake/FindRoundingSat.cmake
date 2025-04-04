@@ -42,6 +42,30 @@ if(NOT EXISTS "${DEPS_BASE}/bin")
   file(MAKE_DIRECTORY "${DEPS_BASE}/bin")
 endif()
 
+# -------BOOST---------------------------------------------------------------------------------------------------------------------
+
+# find_package(Boost 1.67)
+
+# if(NOT Boost_FOUND)
+  ExternalProject_Add(
+    Boost-EP
+    ${COMMON_EP_CONFIG}
+    URL "https://archives.boost.io/release/1.87.0/source/boost_1_87_0.tar.gz"
+    DOWNLOAD_NAME boost.tar.gz
+    URL_HASH SHA256=f55c340aa49763b1925ccf02b2e83f35fdcf634c9d5164a2acb87540173c741d
+    CONFIGURE_COMMAND ./bootstrap.sh --prefix=<INSTALL_DIR>
+    BUILD_COMMAND ./b2 install
+    INSTALL_COMMAND ""
+    BUILD_IN_SOURCE YES
+  )
+
+  add_library(Boost::Boost INTERFACE IMPORTED)
+  set_target_properties(Boost::Boost PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "<INSTALL_DIR>/include"
+    INTERFACE_LINK_LIBRARIES "<INSTALL_DIR>/lib"
+  )
+# endif()
+
 # ---------------------------------------------------------------------------------------------------------------------------------
 
 ExternalProject_Add(
@@ -57,6 +81,8 @@ ExternalProject_Add(
   INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/build/roundingsat ${DEPS_BASE}/bin/roundingsat
   BUILD_BYPRODUCTS <INSTALL_DIR>/build/roundingsat
 )
+
+add_dependencies(RoundingSat-EP Boost-EP)
 
 add_compile_definitions(ROUNDINGSAT_PATH="${DEPS_BASE}/bin/roundingsat")
 
