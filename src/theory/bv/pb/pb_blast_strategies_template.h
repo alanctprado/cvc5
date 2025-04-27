@@ -440,7 +440,7 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
   Assert(term.getKind() == Kind::BITVECTOR_XOR);
   if (term.getNumChildren() < 2) Unreachable();
   if (term.getNumChildren() != 2)
-    Unimplemented() << "cvc5 currently supports only XOR for two operands";
+    Unreachable() << "cvc5 currently supports only XOR for two operands";
 
   NodeManager* nm = pbb->getNodeManager();
   unsigned num_bits = utils::getSize(term);
