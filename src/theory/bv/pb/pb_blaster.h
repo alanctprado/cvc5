@@ -134,6 +134,8 @@ void TPseudoBooleanBlaster<T>::initTermStrategies()
       DefaultConstPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XOR)] =
       DefaultXorPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_XNOR)] =
+      DefaultXnorPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_ADD)] =
       DefaultAddPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_AND)] =

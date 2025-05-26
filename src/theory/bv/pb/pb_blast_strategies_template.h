@@ -423,14 +423,6 @@ T DefaultConstPb(Node term, TPseudoBooleanBlaster<T>* pbb)
   return mkTermNode(variables, constraints, nm);
 }
 
-/**
- * Bit-Vector XOR (binary)
- *
- * (x != y) is equivalent to
- *
- * r = xor(x, y)
- * \sum_i r_i >= 1
- */
 template <class T>
 T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
 {
@@ -454,7 +446,7 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
     {
       rhs_nodes.push_back(term[i]);
     }
-    T rhs_xor = pbb->getNodeManager()->mkNode(Kind::BITVECTOR_XOR, rhs_nodes);
+    T rhs_xor = nm->mkNode(Kind::BITVECTOR_XOR, rhs_nodes);
     rhs = pbb->blastTerm(rhs_xor);
   }
   else
@@ -478,6 +470,24 @@ T DefaultXorPb(T term, TPseudoBooleanBlaster<T>* pbb)
   Assert(blasted_term[0].getNumChildren() == num_bits);
   Trace("bv-pb") << "theory::bv::pb::DefaultXorPb done\n";
   return blasted_term;
+}
+
+template <class T>
+T DefaultXnorPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultXnorPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_XNOR);
+  if (term.getNumChildren() < 2) Unreachable();
+
+  NodeManager* nm = pbb->getNodeManager();
+  std::vector<T> children;
+  for (unsigned i = 1; i < term.getNumChildren(); i++)
+  {
+    children.push_back(term[i]);
+  }
+  T rewritten_node = nm->mkNode(Kind::BITVECTOR_NOT, nm->mkNode(Kind::BITVECTOR_XOR, children));
+
+  return pbb->blastTerm(rewritten_node);
 }
 
 template <class T>
