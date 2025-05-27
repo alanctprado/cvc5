@@ -485,8 +485,9 @@ T DefaultXnorPb(T term, TPseudoBooleanBlaster<T>* pbb)
   {
     children.push_back(term[i]);
   }
-  T rewritten_node = nm->mkNode(Kind::BITVECTOR_NOT, nm->mkNode(Kind::BITVECTOR_XOR, children));
 
+  T rewritten_node = nm->mkNode(Kind::BITVECTOR_NOT,
+                                nm->mkNode(Kind::BITVECTOR_XOR, children));
   return pbb->blastTerm(rewritten_node);
 }
 
@@ -791,6 +792,43 @@ T DefaultExtractPb(T term, TPseudoBooleanBlaster<T>* pbb)
   T blasted_term = mkTermNode(result_vars, constraints, nm);
   Assert(blasted_term[0].getNumChildren() == num_bits);
   Trace("bv-pb") << "theory::bv::pb::DefaultExtractPb done\n";
+  return blasted_term;
+}
+
+template <class T>
+T DefaultNegPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultNegPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_NEG);
+
+  NodeManager* nm = pbb->getNodeManager();
+  unsigned num_bits = utils::getSize(term);
+  T result_vars = pbb->newVariable(num_bits);
+  Trace("bv-pb") << " with bits " << result_vars << "\n";
+
+  T blasted = pbb->blastTerm(term[0]);
+  std::unordered_set<Node> constraints;
+  for (const T& c : blasted[1]) constraints.insert(c);
+
+  std::vector<Node> variables;
+  std::vector<Node> coefficients;
+  std::vector<Node> aux_coefficients = bvToUnsigned(num_bits, nm);
+  for (unsigned i = 0; i < num_bits; i++)
+  {
+    variables.push_back(result_vars[i]);
+    variables.push_back(blasted[0][i]);
+    coefficients.push_back(aux_coefficients[i]);
+    coefficients.push_back(aux_coefficients[i]);
+  }
+
+  T rhs = nm->mkConstInt(Rational(Integer(1).multiplyByPow2(num_bits)));
+
+  constraints.insert(
+      mkConstraintNode(Kind::EQUAL, variables, coefficients, rhs, nm));
+
+  T blasted_term = mkTermNode(result_vars, constraints, nm);
+  Assert(blasted_term[0].getNumChildren() == utils::getSize(term));
+  Trace("bv-pb") << "theory::bv::pb::DefaultNegPb done\n";
   return blasted_term;
 }
 

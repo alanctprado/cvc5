@@ -150,6 +150,8 @@ void TPseudoBooleanBlaster<T>::initTermStrategies()
       DefaultConcatPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_EXTRACT)] =
       DefaultExtractPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NEG)] =
+      DefaultNegPb<T>;
 }
 
 template <class T>
