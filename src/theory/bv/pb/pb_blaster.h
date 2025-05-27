@@ -29,7 +29,6 @@ namespace theory {
 namespace bv {
 namespace pb {
 
-
 template <class T>
 class TPseudoBooleanBlaster
 {
@@ -140,8 +139,7 @@ void TPseudoBooleanBlaster<T>::initTermStrategies()
       DefaultAddPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_AND)] =
       DefaultAndPb<T>;
-  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_OR)] =
-      DefaultOrPb<T>;
+  d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_OR)] = DefaultOrPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_NOT)] =
       DefaultNotPb<T>;
   d_termStrategies[static_cast<uint32_t>(Kind::BITVECTOR_MULT)] =

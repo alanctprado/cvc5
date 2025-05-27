@@ -840,9 +840,8 @@ T DefaultSubPb(T term, TPseudoBooleanBlaster<T>* pbb)
   if (term.getNumChildren() != 2) Unreachable();
 
   NodeManager* nm = pbb->getNodeManager();
-  T rewritten_node = nm->mkNode(Kind::BITVECTOR_ADD,
-                                term[0],
-                                nm->mkNode(Kind::BITVECTOR_NEG, term[1]));
+  T rewritten_node = nm->mkNode(
+      Kind::BITVECTOR_ADD, term[0], nm->mkNode(Kind::BITVECTOR_NEG, term[1]));
   return pbb->blastTerm(rewritten_node);
 }
 
