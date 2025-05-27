@@ -832,6 +832,20 @@ T DefaultNegPb(T term, TPseudoBooleanBlaster<T>* pbb)
   return blasted_term;
 }
 
+template <class T>
+T DefaultSubPb(T term, TPseudoBooleanBlaster<T>* pbb)
+{
+  Trace("bv-pb") << "theory::bv::pb::DefaultSubPb blasting " << term;
+  Assert(term.getKind() == Kind::BITVECTOR_SUB);
+  if (term.getNumChildren() != 2) Unreachable();
+
+  NodeManager* nm = pbb->getNodeManager();
+  T rewritten_node = nm->mkNode(Kind::BITVECTOR_ADD,
+                                term[0],
+                                nm->mkNode(Kind::BITVECTOR_NEG, term[1]));
+  return pbb->blastTerm(rewritten_node);
+}
+
 }  // namespace pb
 }  // namespace bv
 }  // namespace theory
